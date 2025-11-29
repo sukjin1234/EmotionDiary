@@ -1,0 +1,268 @@
+.main-content {
+    max-width: 72rem;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: #92400e;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: #b45309;
+}
+
+.emotion-stats {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+    .emotion-stats {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.emotion-stat-card {
+    border: 2px solid;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.emotion-stat-card.happy {
+    background: #fef9c3;
+    border-color: #fde047;
+}
+
+.emotion-stat-card.angry {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.emotion-stat-card.sad {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+.emotion-stat-icon {
+    margin: 0 auto 0.5rem;
+    width: 48px;
+    height: 48px;
+    font-size: 48px;
+}
+
+.emotion-stat-label {
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+
+.emotion-stat-count {
+    color: #111827;
+    font-weight: 500;
+}
+
+.btn-new-diary {
+    width: 100%;
+    background: linear-gradient(to right, #fbbf24, #fb923c);
+    color: white;
+    padding: 1rem;
+    border: none;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-new-diary:hover {
+    background: linear-gradient(to right, #f59e0b, #f97316);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.diary-list-section h2 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.diary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.diary-item {
+    background: white;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.15s;
+    border-left: 4px solid;
+}
+
+@media (min-width: 768px) {
+    .diary-item {
+        padding: 1.5rem;
+    }
+}
+
+.diary-item:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.diary-item.happy {
+    border-color: #fde047;
+}
+
+.diary-item.angry {
+    border-color: #fca5a5;
+}
+
+.diary-item.sad {
+    border-color: #93c5fd;
+}
+
+.diary-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .diary-header {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+    }
+}
+
+.diary-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.diary-emotion-icon {
+    background: #fef3c7;
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+    flex-shrink: 0;
+    font-size: 20px;
+}
+
+@media (min-width: 768px) {
+    .diary-emotion-icon {
+        padding: 0.75rem;
+        font-size: 24px;
+    }
+}
+
+.diary-title-date {
+    min-width: 0;
+    flex: 1;
+}
+
+.diary-title {
+    color: #1f2937;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.diary-date {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.diary-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+}
+
+@media (min-width: 640px) {
+    .diary-header-right {
+        align-self: auto;
+    }
+}
+
+.emotion-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+    font-size: 0.875rem;
+}
+
+.emotion-badge.happy {
+    background: #fef9c3;
+    color: #ca8a04;
+}
+
+.emotion-badge.angry {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.emotion-badge.sad {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.btn-delete {
+    color: #9ca3af;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.btn-delete:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.diary-content {
+    color: #374151;
+    line-height: 1.625;
+    word-wrap: break-word;
+}
+
+.empty-state {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .empty-state {
+        padding: 3rem;
+    }
+}
+
+.empty-state p {
+    color: #6b7280;
+    margin: 0.25rem 0;
+}
+
