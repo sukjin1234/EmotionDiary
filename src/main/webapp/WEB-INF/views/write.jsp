@@ -15,7 +15,10 @@
         <div class="write-content">
             <div class="write-card">
                 <div class="write-header">
-                    <h1>새 일기 쓰기</h1>
+                    <div class="write-header-left">
+                        <h1>새 일기 쓰기</h1>
+                        <input type="date" id="diaryDate" name="date" class="date-picker" required>
+                    </div>
                     <button class="btn-close" onclick="location.href='${pageContext.request.contextPath}/main'">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -64,6 +67,15 @@
     </div>
     
     <script src="${pageContext.request.contextPath}/resources/js/write.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('diaryDate');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+        });
+    </script>
 </body>
 </html>
 
