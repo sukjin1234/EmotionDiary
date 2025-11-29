@@ -29,12 +29,66 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.write-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
 }
 
 .write-header h1 {
     color: #92400e;
     font-size: 1.5rem;
     font-weight: 500;
+    margin: 0;
+}
+
+.date-picker {
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #fde68a;
+    border-radius: 0.5rem;
+    background: rgba(254, 243, 199, 0.3);
+    color: #92400e;
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.date-picker:focus {
+    outline: none;
+    border-color: #f59e0b;
+    background: rgba(254, 243, 199, 0.5);
+}
+
+.date-picker:hover {
+    border-color: #fcd34d;
+    background: rgba(254, 243, 199, 0.4);
+}
+
+@media (max-width: 640px) {
+    .write-header {
+        flex-wrap: wrap;
+    }
+    
+    .write-header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        width: 100%;
+    }
+    
+    .write-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .date-picker {
+        width: 100%;
+    }
 }
 
 .btn-close {
