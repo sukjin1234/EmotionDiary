@@ -77,12 +77,14 @@ document.getElementById('diaryForm').addEventListener('submit', async function(e
     
     const resultDiv = document.getElementById('emotionResult');
     const emotion = resultDiv.dataset.emotion || analyzeEmotion(content);
-    
+    const dateInput = document.getElementById('diaryDate');
+    const selectedDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+
     const diary = {
         title,
         content,
         emotion,
-        date: new Date().toISOString()
+        date: selectedDate
     };
     
     try {
