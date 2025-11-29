@@ -1,0 +1,173 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: ui-sans-serif, system-ui, sans-serif;
+    background: linear-gradient(to bottom right, #fef3c7, #fed7aa, #fce7f3);
+    min-height: 100vh;
+    color: #1f2937;
+}
+
+.container {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    .container {
+        padding: 2rem;
+    }
+}
+
+.navbar {
+    background: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #fef3c7;
+}
+
+.nav-container {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 4rem;
+}
+
+.nav-title {
+    color: #b45309;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.nav-desktop {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .nav-desktop {
+        display: flex;
+    }
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.nav-link:hover {
+    background: #fef3c7;
+}
+
+.nav-link.active {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.nav-user {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+}
+
+@media (min-width: 768px) {
+    .nav-user {
+        display: flex;
+    }
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #92400e;
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: #4b5563;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-logout:hover {
+    background: #fef3c7;
+}
+
+.nav-menu-toggle {
+    display: block;
+    padding: 0.5rem;
+    color: #b45309;
+    background: none;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+@media (min-width: 768px) {
+    .nav-menu-toggle {
+        display: none;
+    }
+}
+
+.nav-menu-toggle:hover {
+    background: #fef3c7;
+}
+
+.nav-mobile {
+    padding: 1rem 0;
+    border-top: 1px solid #fef3c7;
+}
+
+.nav-mobile .nav-link {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav-user-mobile {
+    border-top: 1px solid #fef3c7;
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.nav-user-mobile .user-info {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.nav-user-mobile .btn-logout {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    justify-content: flex-start;
+}
+
