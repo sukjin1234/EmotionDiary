@@ -20,7 +20,7 @@ public class DiaryController {
     
     @GetMapping("/login")
     public String login() {
-        return "views/login";
+        return "login";
     }
     
     @GetMapping("/main")
@@ -28,7 +28,7 @@ public class DiaryController {
         if (session.getAttribute("username") == null) {
             return "redirect:/login";
         }
-        return "views/main";
+        return "main";
     }
     
     @GetMapping("/write")
@@ -36,7 +36,7 @@ public class DiaryController {
         if (session.getAttribute("username") == null) {
             return "redirect:/login";
         }
-        return "views/write";
+        return "write";
     }
     
     @GetMapping("/calendar")
@@ -44,6 +44,7 @@ public class DiaryController {
         if (session.getAttribute("username") == null) {
             return "redirect:/login";
         }
-        return "views/calendar";
+        return "calendar";
     }
 }
+

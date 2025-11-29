@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/calendar.css">
 </head>
 <body>
-    <jsp:include page="/WEB-INF/views/views/navigation.jsp"/>
+    <jsp:include page="/WEB-INF/views/navigation.jsp"/>
     
     <div class="container">
         <div class="calendar-content">

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/main.css">
 </head>
 <body>
-    <jsp:include page="/WEB-INF/views/views/navigation.jsp"/>
+    <jsp:include page="/WEB-INF/views/navigation.jsp"/>
     
     <div class="container">
         <div class="main-content">
