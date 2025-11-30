@@ -37,6 +37,13 @@
     align-items: center;
     gap: 1rem;
     flex: 1;
+    flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+    .write-header-left {
+        gap: 1.5rem;
+    }
 }
 
 .write-header h1 {
@@ -46,28 +53,122 @@
     margin: 0;
 }
 
-.date-picker {
-    padding: 0.5rem 0.75rem;
+/* 날짜 선택 필드 스타일 */
+.date-picker,
+input.date-picker,
+input[type="date"],
+input[type="date"].date-picker {
+    padding: 0.625rem 1rem;
     border: 2px solid #fde68a;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
     background: rgba(254, 243, 199, 0.3);
     color: #92400e;
     font-size: 0.875rem;
     font-weight: 500;
     font-family: inherit;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-width: 160px;
+    height: auto;
+    line-height: 1.5;
+    box-sizing: border-box;
 }
 
-.date-picker:focus {
+.date-picker:hover,
+input.date-picker:hover,
+input[type="date"]:hover,
+input[type="date"].date-picker:hover {
+    border-color: #fcd34d;
+    background: rgba(254, 243, 199, 0.4);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.date-picker:focus,
+input.date-picker:focus,
+input[type="date"]:focus,
+input[type="date"].date-picker:focus {
     outline: none;
     border-color: #f59e0b;
     background: rgba(254, 243, 199, 0.5);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.date-picker:hover {
-    border-color: #fcd34d;
-    background: rgba(254, 243, 199, 0.4);
+/* Chrome, Safari, Edge - 날짜 입력 필드 내부 요소 스타일 */
+.date-picker::-webkit-datetime-edit,
+input.date-picker::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"].date-picker::-webkit-datetime-edit {
+    color: #92400e;
+    padding: 0;
+    display: inline-block;
+}
+
+.date-picker::-webkit-datetime-edit-fields-wrapper,
+input.date-picker::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"].date-picker::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+    background: transparent;
+}
+
+.date-picker::-webkit-datetime-edit-text,
+input.date-picker::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"].date-picker::-webkit-datetime-edit-text {
+    color: #92400e;
+    padding: 0 0.2em;
+}
+
+.date-picker::-webkit-datetime-edit-month-field,
+input.date-picker::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"].date-picker::-webkit-datetime-edit-month-field,
+.date-picker::-webkit-datetime-edit-day-field,
+input.date-picker::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"].date-picker::-webkit-datetime-edit-day-field,
+.date-picker::-webkit-datetime-edit-year-field,
+input.date-picker::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"].date-picker::-webkit-datetime-edit-year-field {
+    color: #92400e;
+    padding: 0 0.15em;
+    background: transparent;
+}
+
+.date-picker::-webkit-calendar-picker-indicator,
+input.date-picker::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"].date-picker::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.7;
+    filter: invert(27%) sepia(62%) saturate(2903%) hue-rotate(358deg) brightness(99%) contrast(95%);
+    transition: opacity 0.2s, transform 0.2s;
+    padding: 4px;
+    margin-left: 4px;
+}
+
+.date-picker::-webkit-calendar-picker-indicator:hover,
+input.date-picker::-webkit-calendar-picker-indicator:hover,
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="date"].date-picker::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.date-picker::-webkit-inner-spin-button,
+input.date-picker::-webkit-inner-spin-button,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"].date-picker::-webkit-inner-spin-button {
+    display: none;
+}
+
+.date-picker::-webkit-clear-button,
+input.date-picker::-webkit-clear-button,
+input[type="date"]::-webkit-clear-button,
+input[type="date"].date-picker::-webkit-clear-button {
+    display: none;
 }
 
 @media (max-width: 640px) {
@@ -86,8 +187,14 @@
         font-size: 1.25rem;
     }
     
-    .date-picker {
+    .date-picker,
+    input.date-picker,
+    input[type="date"],
+    input[type="date"].date-picker {
         width: 100%;
+        min-width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
     }
 }
 
