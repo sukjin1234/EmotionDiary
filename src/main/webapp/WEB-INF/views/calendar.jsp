@@ -47,6 +47,29 @@
         </div>
     </div>
     
+    <!-- 일기 목록 모달 -->
+    <div id="diaryModal" class="diary-modal">
+        <div class="diary-modal-overlay" id="diaryModalOverlay"></div>
+        <div class="diary-modal-content">
+            <div class="diary-modal-header">
+                <div>
+                    <h3 id="diaryModalTitle">일기 목록</h3>
+                    <p id="diaryModalSubtitle" class="diary-modal-subtitle"></p>
+                </div>
+                <button class="diary-modal-close" id="diaryModalClose">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="diary-modal-body">
+                <div id="diaryList" class="diary-list-container">
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="${pageContext.request.contextPath}/resources/js/calendar.js"></script>
 </body>
 </html>
