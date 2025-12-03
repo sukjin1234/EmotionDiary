@@ -298,3 +298,227 @@
     }
 }
 
+.calendar-day.clickable {
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.calendar-day.clickable:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-color: #fbbf24 !important;
+}
+
+.diary-count {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #f59e0b;
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 600;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    min-width: 1rem;
+    text-align: center;
+}
+
+@media (min-width: 640px) {
+    .diary-count {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.375rem;
+        top: 4px;
+        right: 4px;
+    }
+}
+
+.diary-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.diary-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+.diary-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    max-width: 42rem;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #fef3c7;
+}
+
+@media (min-width: 640px) {
+    .diary-modal-content {
+        border-radius: 1.5rem;
+    }
+}
+
+.diary-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #fef3c7;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+    border-radius: 1rem 1rem 0 0;
+}
+
+@media (min-width: 640px) {
+    .diary-modal-header {
+        border-radius: 1.5rem 1.5rem 0 0;
+    }
+}
+
+.diary-modal-header h3 {
+    color: #92400e;
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 0 0 0.25rem 0;
+}
+
+.diary-modal-subtitle {
+    color: #b45309;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.diary-modal-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+}
+
+.diary-modal-close:hover {
+    color: #4b5563;
+    background: #fef3c7;
+}
+
+.diary-modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.diary-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.no-diaries {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+}
+
+.diary-item {
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all 0.15s;
+}
+
+.diary-item-btn {
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.diary-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.diary-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.diary-emotion {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.emotion-icon {
+    font-size: 1rem;
+}
+
+.diary-time {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.diary-expand-icon {
+    color: #9ca3af;
+    transition: transform 0.2s;
+}
+
+.diary-expand-icon.expanded {
+    transform: rotate(90deg);
+}
+
+.diary-title {
+    color: #374151;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    text-align: left;
+}
+
+.diary-content-expanded {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.diary-content {
+    color: #4b5563;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
