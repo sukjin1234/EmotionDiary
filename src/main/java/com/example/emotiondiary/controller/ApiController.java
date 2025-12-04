@@ -12,9 +12,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/api")
@@ -126,7 +134,7 @@ public class ApiController {
                     .password(password) // 실제로는 암호화해야 함
                     .build();
             
-            User savedUser = userService.save(newUser);
+            userService.save(newUser);
             
             response.put("success", true);
             response.put("message", "회원가입이 완료되었습니다.");
@@ -269,6 +277,82 @@ public class ApiController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "일기 삭제에 실패했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @PostMapping(value = "/images/upload", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> uploadImages(@RequestParam("images") MultipartFile[] files,
+                                           HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // 로그인 확인
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            // 이미지 저장 디렉토리 경로 (프로젝트 루트 기준)
+            String projectRoot = System.getProperty("user.dir");
+            String uploadDir = projectRoot + File.separator + "src" + File.separator + "main" + 
+                             File.separator + "resources" + File.separator + "static" + 
+                             File.separator + "images";
+            File directory = new File(uploadDir);
+            if (!directory.exists()) {
+                boolean created = directory.mkdirs();
+                if (!created && !directory.exists()) {
+                    throw new IOException("이미지 저장 디렉토리를 생성할 수 없습니다: " + uploadDir);
+                }
+            }
+            
+            List<String> imageUrls = new ArrayList<>();
+            
+            for (MultipartFile file : files) {
+                if (file.isEmpty()) {
+                    continue;
+                }
+                
+                // 파일 확장자 확인
+                String originalFilename = file.getOriginalFilename();
+                if (originalFilename == null || !originalFilename.matches(".*\\.(jpg|jpeg|png|gif|webp)$")) {
+                    continue;
+                }
+                
+                // 고유한 파일명 생성 (타임스탬프 + 사용자ID + 원본 파일명)
+                String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                String uniqueFileName = System.currentTimeMillis() + "_" + userId + "_" + 
+                                      UUID.randomUUID().toString().substring(0, 8) + fileExtension;
+                
+                // 파일 저장
+                Path filePath = Paths.get(uploadDir, uniqueFileName);
+                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                
+                // 이미지 URL 생성 (프론트엔드에서 접근 가능한 경로)
+                String imageUrl = "/resources/images/" + uniqueFileName;
+                imageUrls.add(imageUrl);
+            }
+            
+            if (imageUrls.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "업로드된 이미지가 없습니다.");
+                return response;
+            }
+            
+            response.put("success", true);
+            response.put("imageUrls", imageUrls);
+            response.put("message", imageUrls.size() + "개의 이미지가 업로드되었습니다.");
+            
+        } catch (IOException e) {
+            response.put("success", false);
+            response.put("message", "이미지 업로드 중 오류가 발생했습니다: " + e.getMessage());
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "이미지 업로드 중 오류가 발생했습니다: " + e.getMessage());
         }
         
         return response;
