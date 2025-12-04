@@ -1,8 +1,10 @@
 package com.example.emotiondiary.controller;
 
 import com.example.emotiondiary.entity.Diary;
+import com.example.emotiondiary.entity.DiaryImage;
 import com.example.emotiondiary.entity.SentimentAnalysis;
 import com.example.emotiondiary.entity.User;
+import com.example.emotiondiary.service.DiaryImageService;
 import com.example.emotiondiary.service.DiaryService;
 import com.example.emotiondiary.service.SentimentAnalysisService;
 import com.example.emotiondiary.service.UserService;
@@ -31,6 +33,7 @@ public class ApiController {
     
     private final UserService userService;
     private final DiaryService diaryService;
+    private final DiaryImageService diaryImageService;
     private final SentimentAnalysisService sentimentAnalysisService;
     
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -177,6 +180,13 @@ public class ApiController {
                 diaryMap.put("emotion", emotionStr);
             }
             
+            // 이미지 목록 조회
+            List<DiaryImage> images = diaryImageService.findByDiaryId(diary.getDiaryId());
+            List<String> imageUrls = images.stream()
+                    .map(DiaryImage::getImageUrl)
+                    .collect(Collectors.toList());
+            diaryMap.put("images", imageUrls);
+            
             return diaryMap;
         }).collect(Collectors.toList());
     }
@@ -210,6 +220,32 @@ public class ApiController {
             // Diary 저장
             Diary savedDiary = diaryService.save(diary);
             
+            // 이미지 저장
+            Object imageUrlsObj = diaryData.get("imageUrls");
+            if (imageUrlsObj instanceof List) {
+                @SuppressWarnings("unchecked")
+                List<Object> rawList = (List<Object>) imageUrlsObj;
+                
+                List<DiaryImage> diaryImages = new ArrayList<>();
+                for (int i = 0; i < rawList.size(); i++) {
+                    Object item = rawList.get(i);
+                    String imageUrl = item != null ? item.toString() : null;
+                    
+                    if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                        DiaryImage diaryImage = DiaryImage.builder()
+                                .diary(savedDiary)
+                                .imageUrl(imageUrl.trim())
+                                .sortOrder(i + 1)
+                                .build();
+                        diaryImages.add(diaryImage);
+                    }
+                }
+                
+                if (!diaryImages.isEmpty()) {
+                    diaryImageService.saveAll(diaryImages);
+                }
+            }
+            
             // 감정 분석 결과 저장
             Object emotionObj = diaryData.get("emotion");
             if (emotionObj != null) {
@@ -237,6 +273,57 @@ public class ApiController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "일기 저장에 실패했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @PutMapping(value = "/diaries/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> updateDiary(@PathVariable String id,
+                                           @RequestBody Map<String, Object> diaryData,
+                                           HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Map<String, Object> response = new HashMap<>();
+        
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            Long diaryId = Long.parseLong(id);
+            
+            // 일기 조회 및 소유자 확인
+            Diary diary = diaryService.findById(diaryId)
+                    .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다."));
+            
+            if (!diary.getUser().getUserId().equals(userId)) {
+                response.put("success", false);
+                response.put("message", "권한이 없습니다.");
+                return response;
+            }
+            
+            // 수정할 데이터로 Diary 엔티티 생성
+            Diary updatedDiary = Diary.builder()
+                    .title((String) diaryData.get("title"))
+                    .content((String) diaryData.get("content"))
+                    .diaryDate(diaryData.get("date") != null 
+                        ? LocalDate.parse((String) diaryData.get("date"))
+                        : diary.getDiaryDate())
+                    .build();
+            
+            // 일기 수정
+            diaryService.update(diaryId, updatedDiary);
+            
+            response.put("success", true);
+        } catch (NumberFormatException e) {
+            response.put("success", false);
+            response.put("message", "잘못된 일기 ID입니다.");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "일기 수정에 실패했습니다: " + e.getMessage());
         }
         
         return response;
@@ -333,7 +420,8 @@ public class ApiController {
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
                 
                 // 이미지 URL 생성 (프론트엔드에서 접근 가능한 경로)
-                String imageUrl = "/resources/images/" + uniqueFileName;
+                // Spring Boot 기본 static resource 경로 사용
+                String imageUrl = "/images/" + uniqueFileName;
                 imageUrls.add(imageUrl);
             }
             
