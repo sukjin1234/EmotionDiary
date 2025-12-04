@@ -1,13 +1,20 @@
 package com.example.emotiondiary;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class EmotiondiaryApplication {
-
 	public static void main(String[] args) {
-		SpringApplication.run(EmotiondiaryApplication.class, args);
+		Dotenv dotenv = Dotenv.configure()
+            .directory("./")
+            .ignoreIfMissing()
+            .load();
+        dotenv.entries().forEach(entry -> 
+            System.setProperty(entry.getKey(), entry.getValue())
+        );
+        SpringApplication.run(EmotiondiaryApplication.class, args);
 	}
 
 }
