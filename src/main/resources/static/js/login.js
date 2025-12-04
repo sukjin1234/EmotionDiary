@@ -1,3 +1,22 @@
+// 비밀번호 표시/숨김 토글 기능
+document.getElementById('passwordToggle').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const eyeOpen = this.querySelector('.eye-open');
+    const eyeClose = this.querySelector('.eye-close');
+    
+    if (passwordInput.type === 'password') {
+        // 비밀번호 보이기 - 열린 눈 아이콘 표시
+        passwordInput.type = 'text';
+        eyeClose.style.display = 'none';
+        eyeOpen.style.display = 'block';
+    } else {
+        // 비밀번호 숨기기 - 닫힌 눈 아이콘 표시
+        passwordInput.type = 'password';
+        eyeOpen.style.display = 'none';
+        eyeClose.style.display = 'block';
+    }
+});
+
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
