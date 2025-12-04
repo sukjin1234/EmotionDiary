@@ -90,6 +90,43 @@
     border-color: #f59e0b;
 }
 
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #b45309;
+    transition: color 0.15s;
+}
+
+.password-toggle:hover {
+    color: #92400e;
+}
+
+.password-toggle:focus {
+    outline: none;
+}
+
+.eye-icon {
+    width: 20px;
+    height: 20px;
+}
+
 .btn-login {
     width: 100%;
     background: linear-gradient(to right, #fbbf24, #fb923c);
@@ -106,6 +143,23 @@
 .btn-login:hover {
     background: linear-gradient(to right, #f59e0b, #f97316);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.register-link a {
+    color: #b45309;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.15s;
+}
+
+.register-link a:hover {
+    color: #92400e;
+    text-decoration: underline;
 }
 
 .login-footer {
