@@ -193,7 +193,7 @@ public class ApiController {
     
     @GetMapping(value = "/diaries/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Map<String, Object> getDiary(@PathVariable String id, HttpSession session) {
+    public Map<String, Object> getDiary(@PathVariable("id") String id, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         Map<String, Object> response = new HashMap<>();
         
@@ -206,12 +206,12 @@ public class ApiController {
         try {
             Long diaryId = Long.parseLong(id);
             
-            // 일기 조회
-            Diary diary = diaryService.findById(diaryId)
+            // 일기 조회 (User 엔티티 함께 로드)
+            Diary diary = diaryService.findByIdWithUser(diaryId)
                     .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다."));
             
             // 소유자 확인
-            if (!diary.getUser().getUserId().equals(userId)) {
+            if (diary.getUser() == null || !diary.getUser().getUserId().equals(userId)) {
                 response.put("success", false);
                 response.put("message", "권한이 없습니다.");
                 return response;
@@ -248,7 +248,11 @@ public class ApiController {
         } catch (NumberFormatException e) {
             response.put("success", false);
             response.put("message", "잘못된 일기 ID입니다.");
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
         } catch (Exception e) {
+            e.printStackTrace(); // 서버 로그에 출력
             response.put("success", false);
             response.put("message", "일기 조회에 실패했습니다: " + e.getMessage());
         }
@@ -345,7 +349,7 @@ public class ApiController {
     
     @PutMapping(value = "/diaries/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Map<String, Object> updateDiary(@PathVariable String id,
+    public Map<String, Object> updateDiary(@PathVariable("id") String id,
                                            @RequestBody Map<String, Object> diaryData,
                                            HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
@@ -360,11 +364,11 @@ public class ApiController {
         try {
             Long diaryId = Long.parseLong(id);
             
-            // 일기 조회 및 소유자 확인
-            Diary diary = diaryService.findById(diaryId)
+            // 일기 조회 및 소유자 확인 (User 엔티티 함께 로드)
+            Diary diary = diaryService.findByIdWithUser(diaryId)
                     .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다."));
             
-            if (!diary.getUser().getUserId().equals(userId)) {
+            if (diary.getUser() == null || !diary.getUser().getUserId().equals(userId)) {
                 response.put("success", false);
                 response.put("message", "권한이 없습니다.");
                 return response;
@@ -448,7 +452,7 @@ public class ApiController {
     
     @DeleteMapping(value = "/diaries/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public Map<String, Object> deleteDiary(@PathVariable String id, HttpSession session) {
+    public Map<String, Object> deleteDiary(@PathVariable("id") String id, HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         Map<String, Object> response = new HashMap<>();
         
@@ -461,11 +465,11 @@ public class ApiController {
         try {
             Long diaryId = Long.parseLong(id);
             
-            // 일기 조회 및 소유자 확인
-            Diary diary = diaryService.findById(diaryId)
+            // 일기 조회 및 소유자 확인 (User 엔티티 함께 로드)
+            Diary diary = diaryService.findByIdWithUser(diaryId)
                     .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다."));
             
-            if (!diary.getUser().getUserId().equals(userId)) {
+            if (diary.getUser() == null || !diary.getUser().getUserId().equals(userId)) {
                 response.put("success", false);
                 response.put("message", "권한이 없습니다.");
                 return response;

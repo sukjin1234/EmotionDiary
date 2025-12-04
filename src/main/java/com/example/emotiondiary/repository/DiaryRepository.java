@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
@@ -36,5 +37,11 @@ public interface DiaryRepository extends JpaRepository<Diary, Long> {
      * 사용자의 일기 개수 조회
      */
     long countByUserUserId(Long userId);
+    
+    /**
+     * 일기 ID로 조회 (User 엔티티 함께 로드)
+     */
+    @Query("SELECT d FROM Diary d LEFT JOIN FETCH d.user WHERE d.diaryId = :diaryId")
+    Optional<Diary> findByIdWithUser(@Param("diaryId") Long diaryId);
 }
 

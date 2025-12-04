@@ -28,6 +28,13 @@ public class DiaryService {
     }
     
     /**
+     * 일기 ID로 조회 (User 엔티티 함께 로드)
+     */
+    public Optional<Diary> findByIdWithUser(Long diaryId) {
+        return diaryRepository.findByIdWithUser(diaryId);
+    }
+    
+    /**
      * 사용자 ID로 일기 목록 조회 (최신순)
      */
     public List<Diary> findByUserId(Long userId) {
