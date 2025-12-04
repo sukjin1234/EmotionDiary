@@ -23,6 +23,11 @@ public class DiaryController {
         return "login";
     }
     
+    @GetMapping("/register")
+    public String register() {
+        return "register";
+    }
+    
     @GetMapping("/main")
     public String main(HttpSession session) {
         if (session.getAttribute("username") == null) {
