@@ -1,18 +1,29 @@
 package com.example.emotiondiary.controller;
 
+import com.example.emotiondiary.entity.Diary;
+import com.example.emotiondiary.entity.SentimentAnalysis;
+import com.example.emotiondiary.entity.User;
+import com.example.emotiondiary.service.DiaryService;
+import com.example.emotiondiary.service.SentimentAnalysisService;
+import com.example.emotiondiary.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class ApiController {
     
-    private static final Map<String, List<Map<String, Object>>> userDiaries = new ConcurrentHashMap<>();
+    private final UserService userService;
+    private final DiaryService diaryService;
+    private final SentimentAnalysisService sentimentAnalysisService;
     
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -23,13 +34,33 @@ public class ApiController {
         
         Map<String, Object> response = new HashMap<>();
         
-        if (userId != null && !userId.trim().isEmpty() && 
-            password != null && !password.trim().isEmpty()) {
-            session.setAttribute("username", userId.trim());
-            response.put("success", true);
-        } else {
+        if (userId == null || userId.trim().isEmpty() || 
+            password == null || password.trim().isEmpty()) {
             response.put("success", false);
             response.put("message", "아이디와 비밀번호를 입력해주세요.");
+            return response;
+        }
+        
+        // 이메일 또는 닉네임으로 사용자 조회
+        Optional<User> userOpt = userService.findByEmail(userId.trim());
+        if (userOpt.isEmpty()) {
+            userOpt = userService.findByNickname(userId.trim());
+        }
+        
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            // 비밀번호 검증 (실제로는 암호화된 비밀번호와 비교해야 함)
+            if (password.equals(user.getPassword())) {
+                session.setAttribute("userId", user.getUserId());
+                session.setAttribute("username", user.getNickname() != null ? user.getNickname() : user.getEmail());
+                response.put("success", true);
+            } else {
+                response.put("success", false);
+                response.put("message", "비밀번호가 올바르지 않습니다.");
+            }
+        } else {
+            response.put("success", false);
+            response.put("message", "사용자를 찾을 수 없습니다.");
         }
         
         return response;
@@ -44,61 +75,200 @@ public class ApiController {
         return response;
     }
     
+    @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> register(@RequestBody Map<String, String> registerData) {
+        Map<String, Object> response = new HashMap<>();
+        
+        String email = registerData.get("email");
+        String nickname = registerData.get("nickname");
+        String password = registerData.get("password");
+        
+        // 입력값 검증
+        if (email == null || email.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "이메일을 입력해주세요.");
+            return response;
+        }
+        
+        if (nickname == null || nickname.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "아이디를 입력해주세요.");
+            return response;
+        }
+        
+        if (password == null || password.trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "비밀번호를 입력해주세요.");
+            return response;
+        }
+        
+        try {
+            // 이메일 중복 확인
+            if (userService.existsByEmail(email.trim())) {
+                response.put("success", false);
+                response.put("message", "이미 사용 중인 이메일입니다.");
+                return response;
+            }
+            
+            // 아이디(닉네임) 중복 확인
+            Optional<User> existingNickname = userService.findByNickname(nickname.trim());
+            if (existingNickname.isPresent()) {
+                response.put("success", false);
+                response.put("message", "이미 사용 중인 아이디입니다.");
+                return response;
+            }
+            
+            // 사용자 생성
+            User newUser = User.builder()
+                    .email(email.trim())
+                    .nickname(nickname.trim())
+                    .password(password) // 실제로는 암호화해야 함
+                    .build();
+            
+            User savedUser = userService.save(newUser);
+            
+            response.put("success", true);
+            response.put("message", "회원가입이 완료되었습니다.");
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "회원가입 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
     @GetMapping(value = "/diaries", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public List<Map<String, Object>> getDiaries(HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        if (username == null) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             return new ArrayList<>();
         }
         
-        return userDiaries.getOrDefault(username, new ArrayList<>());
+        List<Diary> diaries = diaryService.findByUserId(userId);
+        
+        return diaries.stream().map(diary -> {
+            Map<String, Object> diaryMap = new HashMap<>();
+            diaryMap.put("id", diary.getDiaryId().toString());
+            diaryMap.put("title", diary.getTitle());
+            diaryMap.put("content", diary.getContent());
+            diaryMap.put("date", diary.getDiaryDate().toString());
+            
+            // 감정 분석 결과 조회
+            Optional<SentimentAnalysis> sentimentOpt = sentimentAnalysisService.findByDiaryId(diary.getDiaryId());
+            if (sentimentOpt.isPresent()) {
+                SentimentAnalysis sentiment = sentimentOpt.get();
+                // Enum을 소문자 문자열로 변환 (프론트엔드와 호환)
+                String emotionStr = sentiment.getEmotion().name().toLowerCase();
+                // ANGER -> angry 변환
+                if (emotionStr.equals("anger")) {
+                    emotionStr = "angry";
+                }
+                diaryMap.put("emotion", emotionStr);
+            }
+            
+            return diaryMap;
+        }).collect(Collectors.toList());
     }
     
     @PostMapping(value = "/diaries", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Map<String, Object> saveDiary(@RequestBody Map<String, Object> diaryData, 
                                          HttpSession session) {
-        String username = (String) session.getAttribute("username");
+        Long userId = (Long) session.getAttribute("userId");
         Map<String, Object> response = new HashMap<>();
         
-        if (username == null) {
+        if (userId == null) {
             response.put("success", false);
             response.put("message", "로그인이 필요합니다.");
             return response;
         }
         
-        Map<String, Object> diary = new HashMap<>();
-        diary.put("id", UUID.randomUUID().toString());
-        diary.put("title", diaryData.get("title"));
-        diary.put("content", diaryData.get("content"));
-        diary.put("emotion", diaryData.get("emotion"));
-        diary.put("date", diaryData.get("date"));
+        try {
+            // User 조회
+            User user = userService.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // Diary 엔티티 생성
+            Diary diary = Diary.builder()
+                    .user(user)
+                    .title((String) diaryData.get("title"))
+                    .content((String) diaryData.get("content"))
+                    .diaryDate(LocalDate.parse((String) diaryData.get("date")))
+                    .build();
+            
+            // Diary 저장
+            Diary savedDiary = diaryService.save(diary);
+            
+            // 감정 분석 결과 저장
+            Object emotionObj = diaryData.get("emotion");
+            if (emotionObj != null) {
+                String emotionStr = emotionObj.toString().toUpperCase();
+                // 프론트엔드의 "angry"를 Enum의 "ANGER"로 변환
+                if (emotionStr.equals("ANGRY")) {
+                    emotionStr = "ANGER";
+                }
+                
+                try {
+                    SentimentAnalysis.Emotion emotion = SentimentAnalysis.Emotion.valueOf(emotionStr);
+                    SentimentAnalysis sentimentAnalysis = SentimentAnalysis.builder()
+                            .diary(savedDiary)
+                            .emotion(emotion)
+                            .confidence(1.0f) // 기본 신뢰도
+                            .build();
+                    
+                    sentimentAnalysisService.save(sentimentAnalysis);
+                } catch (IllegalArgumentException e) {
+                    // 유효하지 않은 감정 타입인 경우 무시
+                }
+            }
+            
+            response.put("success", true);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "일기 저장에 실패했습니다: " + e.getMessage());
+        }
         
-        userDiaries.computeIfAbsent(username, k -> new ArrayList<>()).add(diary);
-        
-        response.put("success", true);
         return response;
     }
     
     @DeleteMapping(value = "/diaries/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Map<String, Object> deleteDiary(@PathVariable String id, HttpSession session) {
-        String username = (String) session.getAttribute("username");
+        Long userId = (Long) session.getAttribute("userId");
         Map<String, Object> response = new HashMap<>();
         
-        if (username == null) {
+        if (userId == null) {
             response.put("success", false);
             response.put("message", "로그인이 필요합니다.");
             return response;
         }
         
-        List<Map<String, Object>> diaries = userDiaries.get(username);
-        if (diaries != null) {
-            diaries.removeIf(diary -> id.equals(diary.get("id")));
+        try {
+            Long diaryId = Long.parseLong(id);
+            
+            // 일기 조회 및 소유자 확인
+            Diary diary = diaryService.findById(diaryId)
+                    .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다."));
+            
+            if (!diary.getUser().getUserId().equals(userId)) {
+                response.put("success", false);
+                response.put("message", "권한이 없습니다.");
+                return response;
+            }
+            
+            // 일기 삭제 (관련된 감정 분석, 이미지도 cascade로 삭제됨)
+            diaryService.delete(diaryId);
+            
             response.put("success", true);
-        } else {
+        } catch (NumberFormatException e) {
             response.put("success", false);
+            response.put("message", "잘못된 일기 ID입니다.");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "일기 삭제에 실패했습니다: " + e.getMessage());
         }
         
         return response;
