@@ -64,9 +64,9 @@ public class ApiController {
             if (password.equals(user.getPassword())) {
                 session.setAttribute("userId", user.getUserId());
                 session.setAttribute("username", user.getNickname() != null ? user.getNickname() : user.getEmail());
-                response.put("success", true);
-            } else {
-                response.put("success", false);
+            response.put("success", true);
+        } else {
+            response.put("success", false);
                 response.put("message", "비밀번호가 올바르지 않습니다.");
             }
         } else {
@@ -191,6 +191,71 @@ public class ApiController {
         }).collect(Collectors.toList());
     }
     
+    @GetMapping(value = "/diaries/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> getDiary(@PathVariable String id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Map<String, Object> response = new HashMap<>();
+        
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            Long diaryId = Long.parseLong(id);
+            
+            // 일기 조회
+            Diary diary = diaryService.findById(diaryId)
+                    .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다."));
+            
+            // 소유자 확인
+            if (!diary.getUser().getUserId().equals(userId)) {
+                response.put("success", false);
+                response.put("message", "권한이 없습니다.");
+                return response;
+            }
+            
+            // 일기 정보 구성
+            Map<String, Object> diaryMap = new HashMap<>();
+            diaryMap.put("id", diary.getDiaryId().toString());
+            diaryMap.put("title", diary.getTitle());
+            diaryMap.put("content", diary.getContent());
+            diaryMap.put("date", diary.getDiaryDate().toString());
+            
+            // 감정 분석 결과 조회
+            Optional<SentimentAnalysis> sentimentOpt = sentimentAnalysisService.findByDiaryId(diary.getDiaryId());
+            if (sentimentOpt.isPresent()) {
+                SentimentAnalysis sentiment = sentimentOpt.get();
+                String emotionStr = sentiment.getEmotion().name().toLowerCase();
+                if (emotionStr.equals("anger")) {
+                    emotionStr = "angry";
+                }
+                diaryMap.put("emotion", emotionStr);
+            }
+            
+            // 이미지 목록 조회
+            List<DiaryImage> images = diaryImageService.findByDiaryId(diary.getDiaryId());
+            List<String> imageUrls = images.stream()
+                    .map(DiaryImage::getImageUrl)
+                    .collect(Collectors.toList());
+            diaryMap.put("images", imageUrls);
+            
+            response.put("success", true);
+            response.put("diary", diaryMap);
+            
+        } catch (NumberFormatException e) {
+            response.put("success", false);
+            response.put("message", "잘못된 일기 ID입니다.");
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "일기 조회에 실패했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
     @PostMapping(value = "/diaries", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public Map<String, Object> saveDiary(@RequestBody Map<String, Object> diaryData, 
@@ -313,11 +378,63 @@ public class ApiController {
                         ? LocalDate.parse((String) diaryData.get("date"))
                         : diary.getDiaryDate())
                     .build();
-            
+        
             // 일기 수정
             diaryService.update(diaryId, updatedDiary);
             
-            response.put("success", true);
+            // 이미지 업데이트 (기존 이미지 삭제 후 새로 저장)
+            Object imageUrlsObj = diaryData.get("imageUrls");
+            if (imageUrlsObj instanceof List) {
+                // 기존 이미지 삭제
+                diaryImageService.deleteByDiaryId(diaryId);
+                
+                // 새로운 이미지 저장
+                @SuppressWarnings("unchecked")
+                List<Object> rawList = (List<Object>) imageUrlsObj;
+                
+                List<DiaryImage> diaryImages = new ArrayList<>();
+                for (int i = 0; i < rawList.size(); i++) {
+                    Object item = rawList.get(i);
+                    String imageUrl = item != null ? item.toString() : null;
+                    
+                    if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+                        DiaryImage diaryImage = DiaryImage.builder()
+                                .diary(diary)
+                                .imageUrl(imageUrl.trim())
+                                .sortOrder(i + 1)
+                                .build();
+                        diaryImages.add(diaryImage);
+                    }
+                }
+                
+                if (!diaryImages.isEmpty()) {
+                    diaryImageService.saveAll(diaryImages);
+                }
+            }
+            
+            // 감정 분석 결과 업데이트
+            Object emotionObj = diaryData.get("emotion");
+            if (emotionObj != null) {
+                String emotionStr = emotionObj.toString().toUpperCase();
+                if (emotionStr.equals("ANGRY")) {
+                    emotionStr = "ANGER";
+                }
+                
+                try {
+                    SentimentAnalysis.Emotion emotion = SentimentAnalysis.Emotion.valueOf(emotionStr);
+                    SentimentAnalysis sentimentAnalysis = SentimentAnalysis.builder()
+                            .emotion(emotion)
+                            .confidence(1.0f)
+                            .build();
+                    
+                    // upsert로 감정 분석 결과 생성 또는 업데이트
+                    sentimentAnalysisService.upsertByDiaryId(diaryId, sentimentAnalysis);
+                } catch (IllegalArgumentException e) {
+                    // 유효하지 않은 감정 타입인 경우 무시
+                }
+            }
+        
+        response.put("success", true);
         } catch (NumberFormatException e) {
             response.put("success", false);
             response.put("message", "잘못된 일기 ID입니다.");
