@@ -1,24 +1,47 @@
+const CONTEXT_PATH = typeof CONTEXT_PATH_JSP !== 'undefined' ? CONTEXT_PATH_JSP : '';
+
 const emotionConfig = {
     happy: {
-        icon: '😊',
-        label: '행복',
+        icon: `${CONTEXT_PATH}/images/icon/happy.png`,
+        label: '기쁨',
         color: '#facc15',
         bgColor: '#fef9c3',
         borderColor: '#fde047'
     },
+    anxiety: {
+        icon: `${CONTEXT_PATH}/images/icon/anxiety.png`,
+        label: '불안',
+        color: '#a855f7',
+        bgColor: '#f3e8ff',
+        borderColor: '#a855f7'
+    },
+    embarrassed: {
+        icon: `${CONTEXT_PATH}/images/icon/embarrassed.png`,
+        label: '당황',
+        color: '#f472b6',
+        bgColor: '#fce7f3',
+        borderColor: '#f472b6'
+    },
+    sad: {
+        icon: `${CONTEXT_PATH}/images/icon/sad.png`,
+        label: '슬픔',
+        color: '#60a5fa',
+        bgColor: '#dbeafe',
+        borderColor: '#93c5fd'
+    },
     angry: {
+        icon: `${CONTEXT_PATH}/images/icon/angry.png`,
         label: '분노',
-        icon: '😠',
         color: '#f87171',
         bgColor: '#fee2e2',
         borderColor: '#fca5a5'
     },
-    sad: {
-        label: '슬픔',
-        icon: '😢',
-        color: '#60a5fa',
-        bgColor: '#dbeafe',
-        borderColor: '#93c5fd'
+    hurt: {
+        icon: `${CONTEXT_PATH}/images/icon/hurt.png`,
+        label: '상처',
+        color: '#6b7280',
+        bgColor: '#f3f4f6',
+        borderColor: '#6b7280'
     }
 };
 
@@ -54,7 +77,9 @@ function displayEmotionStats(diaries) {
         const card = document.createElement('div');
         card.className = `emotion-stat-card ${emotion}`;
         card.innerHTML = `
-            <div class="emotion-stat-icon">${config.icon}</div>
+            <div class="emotion-stat-icon">
+                <img src="${config.icon}" alt="${config.label}" />
+            </div>
             <p class="emotion-stat-label">${config.label}</p>
             <p class="emotion-stat-count">${count}개</p>
         `;
@@ -95,7 +120,9 @@ function displayDiaries(diaries) {
             <div class="diary-item ${diary.emotion}" onclick="openDiaryModal('${diary.id}')" style="cursor: pointer;">
                 <div class="diary-header">
                     <div class="diary-header-left">
-                        <div class="diary-emotion-icon">${config.icon}</div>
+                        <div class="diary-emotion-icon">
+                            <img src="${config.icon}" alt="${config.label}" />
+                        </div>
                         <div class="diary-title-date">
                             <h3 class="diary-title">${escapeHtml(diary.title)}</h3>
                             <p class="diary-date">${formattedDate}</p>
@@ -115,6 +142,21 @@ function displayDiaries(diaries) {
             </div>
         `;
     }).join('');
+    
+    // 최대 5개 일기만 보이도록 높이 제한 설정
+    setTimeout(() => {
+        const diaryItems = listContainer.querySelectorAll('.diary-item');
+        if (diaryItems.length > 0) {
+            // 첫 번째 일기 아이템의 높이 측정 (gap 포함)
+            const firstItemHeight = diaryItems[0].offsetHeight;
+            const gap = 16; // 1rem = 16px
+            // 최대 5개까지 보이도록 높이 설정 (4개 gap 포함)
+            const maxHeight = (firstItemHeight * 5) + (gap * 4);
+            listContainer.style.maxHeight = maxHeight + 'px';
+            listContainer.style.overflowY = 'auto';
+            listContainer.style.overflowX = 'hidden';
+        }
+    }, 100);
 }
 
 async function deleteDiary(id) {
@@ -123,7 +165,7 @@ async function deleteDiary(id) {
     }
     
     try {
-        const response = await fetch(`/api/diaries/${id}`, {
+        const response = await fetch(`${CONTEXT_PATH}/api/diaries/${id}`, {
             method: 'DELETE',
             credentials: 'include'
         });
@@ -190,19 +232,25 @@ function openDiaryModal(diaryId) {
     if (emotionBadgeContainer) {
         const emotionBgColor = {
             happy: 'rgba(250, 204, 21, 0.2)',
+            anxiety: 'rgba(168, 85, 247, 0.2)',
+            embarrassed: 'rgba(244, 114, 182, 0.2)',
+            sad: 'rgba(96, 165, 250, 0.2)',
             angry: 'rgba(248, 113, 113, 0.2)',
-            sad: 'rgba(96, 165, 250, 0.2)'
+            hurt: 'rgba(107, 114, 128, 0.2)'
         }[diary.emotion] || 'rgba(250, 204, 21, 0.2)';
         
         const emotionBorderColor = {
             happy: '#facc15',
+            anxiety: '#a855f7',
+            embarrassed: '#f472b6',
+            sad: '#60a5fa',
             angry: '#f87171',
-            sad: '#60a5fa'
+            hurt: '#6b7280'
         }[diary.emotion] || '#facc15';
         
         emotionBadgeContainer.innerHTML = `
             <div class="diary-detail-emotion-badge ${diary.emotion}" style="background: ${emotionBgColor}; border: 1px solid ${emotionBorderColor};">
-                <span class="emotion-icon">${config.icon}</span>
+                <span class="emotion-icon"><img src="${config.icon}" alt="${config.label}" /></span>
                 <span class="emotion-label">${config.label}</span>
             </div>
         `;
@@ -248,7 +296,7 @@ function openDiaryModal(diaryId) {
 
 function editDiary(diaryId) {
     // 일기 수정 페이지로 이동 (일기 ID를 쿼리 파라미터로 전달)
-    window.location.href = `/write?id=${diaryId}`;
+    window.location.href = `${CONTEXT_PATH}/write?id=${diaryId}`;
 }
 
 function closeDiaryModal() {

@@ -34,7 +34,7 @@
 .emotion-stat-card {
     border: 2px solid;
     border-radius: 1rem;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     text-align: center;
 }
 
@@ -43,9 +43,14 @@
     border-color: #fde047;
 }
 
-.emotion-stat-card.angry {
-    background: #fee2e2;
-    border-color: #fca5a5;
+.emotion-stat-card.anxiety {
+    background: #f3e8ff;
+    border-color: #c4b5fd;
+}
+
+.emotion-stat-card.embarrassed {
+    background: #fce7f3;
+    border-color: #f9a8d4;
 }
 
 .emotion-stat-card.sad {
@@ -53,16 +58,41 @@
     border-color: #93c5fd;
 }
 
+.emotion-stat-card.angry {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.emotion-stat-card.hurt {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
 .emotion-stat-icon {
-    margin: 0 auto 0.5rem;
-    width: 48px;
-    height: 48px;
-    font-size: 48px;
+    margin: 0 auto 0.375rem;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emotion-stat-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (min-width: 768px) {
+    .emotion-stat-icon {
+        width: 96px;
+        height: 96px;
+    }
 }
 
 .emotion-stat-label {
     color: #374151;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.125rem;
 }
 
 .emotion-stat-count {
@@ -102,6 +132,29 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    max-height: 600px !important; /* 최대 5개 일기 아이템을 표시할 수 있는 높이 */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 0.5rem;
+}
+
+/* 스크롤바 스타일링 (웹킷 브라우저) */
+.diary-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.diary-list::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 4px;
+}
+
+.diary-list::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.diary-list::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 
 .diary-item {
@@ -128,12 +181,24 @@
     border-color: #fde047;
 }
 
-.diary-item.angry {
-    border-color: #fca5a5;
+.diary-item.anxiety {
+    border-color: #c4b5fd;
+}
+
+.diary-item.embarrassed {
+    border-color: #f9a8d4;
 }
 
 .diary-item.sad {
     border-color: #93c5fd;
+}
+
+.diary-item.angry {
+    border-color: #fca5a5;
+}
+
+.diary-item.hurt {
+    border-color: #9ca3af;
 }
 
 .diary-header {
@@ -164,13 +229,24 @@
     padding: 0.5rem;
     border-radius: 0.75rem;
     flex-shrink: 0;
-    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.diary-emotion-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 @media (min-width: 768px) {
     .diary-emotion-icon {
         padding: 0.75rem;
-        font-size: 24px;
+        width: 48px;
+        height: 48px;
     }
 }
 
@@ -217,14 +293,29 @@
     color: #ca8a04;
 }
 
-.emotion-badge.angry {
-    background: #fee2e2;
-    color: #dc2626;
+.emotion-badge.anxiety {
+    background: #f3e8ff;
+    color: #6b21a8;
+}
+
+.emotion-badge.embarrassed {
+    background: #fce7f3;
+    color: #be185d;
 }
 
 .emotion-badge.sad {
     background: #dbeafe;
     color: #2563eb;
+}
+
+.emotion-badge.angry {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.emotion-badge.hurt {
+    background: #f3f4f6;
+    color: #374151;
 }
 
 .btn-delete {
@@ -409,16 +500,38 @@
     color: #92400e;
 }
 
-.diary-detail-emotion-badge.angry {
-    color: #991b1b;
+.diary-detail-emotion-badge.anxiety {
+    color: #6b21a8;
+}
+
+.diary-detail-emotion-badge.embarrassed {
+    color: #be185d;
 }
 
 .diary-detail-emotion-badge.sad {
     color: #1e40af;
 }
 
+.diary-detail-emotion-badge.angry {
+    color: #991b1b;
+}
+
+.diary-detail-emotion-badge.hurt {
+    color: #374151;
+}
+
 .emotion-icon {
-    font-size: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.emotion-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .emotion-label {

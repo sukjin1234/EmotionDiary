@@ -1,7 +1,10 @@
 const emotionLabels = {
-    happy: '행복',
+    happy: '기쁨',
+    anxiety: '불안',
+    embarrassed: '당황',
+    sad: '슬픔',
     angry: '분노',
-    sad: '슬픔'
+    hurt: '상처'
 };
 
 const happyKeywords = [
@@ -15,8 +18,19 @@ const angryKeywords = [
 ];
 
 const sadKeywords = [
-    '슬프', '우울', '눈물', '힘들', '외로', '아프', '고민', '걱정',
-    '불안', '두렵', '무서', '안타깝', '후회', '그립', '쓸쓸', '허전'
+    '슬프', '우울', '눈물', '힘들', '외로', '아프', '안타깝', '후회', '그립', '쓸쓸', '허전'
+];
+
+const anxietyKeywords = [
+    '불안', '걱정', '두렵', '무서', '조심', '불안정', '떨', '긴장', '초조', '두려워'
+];
+
+const embarrassedKeywords = [
+    '당황', '어색', '부끄', '창피', '민망', '난처', '곤란', '황당', '어이없'
+];
+
+const hurtKeywords = [
+    '상처', '아픔', '서러', '서글프', '억울', '서운', '섭섭', '서러워', '힘겨워'
 ];
 
 function analyzeEmotion(text) {
@@ -25,6 +39,9 @@ function analyzeEmotion(text) {
     let happyScore = 0;
     let angryScore = 0;
     let sadScore = 0;
+    let anxietyScore = 0;
+    let embarrassedScore = 0;
+    let hurtScore = 0;
     
     happyKeywords.forEach(keyword => {
         if (lowerText.includes(keyword)) happyScore++;
@@ -38,13 +55,29 @@ function analyzeEmotion(text) {
         if (lowerText.includes(keyword)) sadScore++;
     });
     
-    if (happyScore >= angryScore && happyScore >= sadScore) {
-        return 'happy';
-    } else if (angryScore >= sadScore) {
-        return 'angry';
-    } else {
-        return 'sad';
-    }
+    anxietyKeywords.forEach(keyword => {
+        if (lowerText.includes(keyword)) anxietyScore++;
+    });
+    
+    embarrassedKeywords.forEach(keyword => {
+        if (lowerText.includes(keyword)) embarrassedScore++;
+    });
+    
+    hurtKeywords.forEach(keyword => {
+        if (lowerText.includes(keyword)) hurtScore++;
+    });
+    
+    const scores = {
+        happy: happyScore,
+        angry: angryScore,
+        sad: sadScore,
+        anxiety: anxietyScore,
+        embarrassed: embarrassedScore,
+        hurt: hurtScore
+    };
+    
+    // 가장 높은 점수의 감정 반환
+    return Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
 }
 
 // 이미지 업로드 관련 변수

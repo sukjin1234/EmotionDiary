@@ -44,9 +44,12 @@ public class SentimentAnalysis {
     
     // 감정 타입 열거형
     public enum Emotion {
-        HAPPY,
-        SAD,
-        ANGER
+        HAPPY,      // 기쁨
+        ANXIETY,    // 불안
+        EMBARRASSED, // 당황
+        SAD,        // 슬픔
+        ANGRY,      // 분노
+        HURT        // 상처
     }
 }
 

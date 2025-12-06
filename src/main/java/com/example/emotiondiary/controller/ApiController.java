@@ -166,6 +166,10 @@ public class ApiController {
             diaryMap.put("title", diary.getTitle());
             diaryMap.put("content", diary.getContent());
             diaryMap.put("date", diary.getDiaryDate().toString());
+            // 작성 시간 추가 (createdAt)
+            if (diary.getCreatedAt() != null) {
+                diaryMap.put("createdAt", diary.getCreatedAt().toString());
+            }
             
             // 감정 분석 결과 조회
             Optional<SentimentAnalysis> sentimentOpt = sentimentAnalysisService.findByDiaryId(diary.getDiaryId());
@@ -173,10 +177,6 @@ public class ApiController {
                 SentimentAnalysis sentiment = sentimentOpt.get();
                 // Enum을 소문자 문자열로 변환 (프론트엔드와 호환)
                 String emotionStr = sentiment.getEmotion().name().toLowerCase();
-                // ANGER -> angry 변환
-                if (emotionStr.equals("anger")) {
-                    emotionStr = "angry";
-                }
                 diaryMap.put("emotion", emotionStr);
             }
             
@@ -223,15 +223,16 @@ public class ApiController {
             diaryMap.put("title", diary.getTitle());
             diaryMap.put("content", diary.getContent());
             diaryMap.put("date", diary.getDiaryDate().toString());
+            // 작성 시간 추가 (createdAt)
+            if (diary.getCreatedAt() != null) {
+                diaryMap.put("createdAt", diary.getCreatedAt().toString());
+            }
             
             // 감정 분석 결과 조회
             Optional<SentimentAnalysis> sentimentOpt = sentimentAnalysisService.findByDiaryId(diary.getDiaryId());
             if (sentimentOpt.isPresent()) {
                 SentimentAnalysis sentiment = sentimentOpt.get();
                 String emotionStr = sentiment.getEmotion().name().toLowerCase();
-                if (emotionStr.equals("anger")) {
-                    emotionStr = "angry";
-                }
                 diaryMap.put("emotion", emotionStr);
             }
             
@@ -319,10 +320,6 @@ public class ApiController {
             Object emotionObj = diaryData.get("emotion");
             if (emotionObj != null) {
                 String emotionStr = emotionObj.toString().toUpperCase();
-                // 프론트엔드의 "angry"를 Enum의 "ANGER"로 변환
-                if (emotionStr.equals("ANGRY")) {
-                    emotionStr = "ANGER";
-                }
                 
                 try {
                     SentimentAnalysis.Emotion emotion = SentimentAnalysis.Emotion.valueOf(emotionStr);
@@ -420,9 +417,6 @@ public class ApiController {
             Object emotionObj = diaryData.get("emotion");
             if (emotionObj != null) {
                 String emotionStr = emotionObj.toString().toUpperCase();
-                if (emotionStr.equals("ANGRY")) {
-                    emotionStr = "ANGER";
-                }
                 
                 try {
                     SentimentAnalysis.Emotion emotion = SentimentAnalysis.Emotion.valueOf(emotionStr);

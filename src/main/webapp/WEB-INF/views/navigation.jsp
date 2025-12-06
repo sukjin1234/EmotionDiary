@@ -10,6 +10,9 @@
         else currentPage = "main";
     }
     String username = (String) session.getAttribute("username");
+    
+    // 수정 모드 확인 (write 페이지이고 id 파라미터가 있을 때)
+    boolean isEditMode = "write".equals(currentPage) && request.getParameter("id") != null;
 %>
 <nav class="navbar">
     <div class="nav-container">
@@ -32,7 +35,7 @@
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
-                    <span>일기 쓰기</span>
+                    <span><%= isEditMode ? "일기 수정" : "일기 쓰기" %></span>
                 </a>
                 
                 <a href="${pageContext.request.contextPath}/calendar" 
@@ -94,7 +97,7 @@
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
-                <span>일기 쓰기</span>
+                <span><%= isEditMode ? "일기 수정" : "일기 쓰기" %></span>
             </a>
             
             <a href="${pageContext.request.contextPath}/calendar" 

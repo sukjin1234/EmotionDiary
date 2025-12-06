@@ -28,6 +28,17 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// 이미지 URL 정규화 함수 (기존 /resources/images/ 경로를 /images/로 변환)
+function normalizeImageUrl(imageUrl) {
+    if (!imageUrl) return '';
+    // /resources/images/ 경로를 /images/로 변환
+    if (imageUrl.startsWith('/resources/images/')) {
+        return imageUrl.replace('/resources/images/', '/images/');
+    }
+    // 이미 /images/로 시작하거나 상대 경로인 경우 그대로 반환
+    return imageUrl.startsWith('/') ? imageUrl : '/' + imageUrl;
+}
+
 async function loadDiaries() {
     try {
         const response = await fetch('/api/diaries', {
@@ -214,10 +225,24 @@ function showDiaryModal(dateStr, entries) {
     
     diaryList.innerHTML = entries.map(entry => {
         let timeStr = '';
-        if (entry.date) {
+        // createdAt이 있으면 작성 시간을 사용, 없으면 date에서 시간 추출
+        if (entry.createdAt) {
+            const createdAtDate = new Date(entry.createdAt);
+            if (!isNaN(createdAtDate.getTime())) {
+                timeStr = createdAtDate.toLocaleTimeString('ko-KR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
+            }
+        } else if (entry.date) {
             const diaryDate = new Date(entry.date);
             if (!isNaN(diaryDate.getTime())) {
-                timeStr = diaryDate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                timeStr = diaryDate.toLocaleTimeString('ko-KR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
             }
         }
         
@@ -248,6 +273,36 @@ function showDiaryModal(dateStr, entries) {
                 ${isExpanded ? `
                     <div class="diary-content-expanded">
                         <p class="diary-content">${entry.content ? escapeHtml(entry.content).replace(/\n/g, '<br>') : '내용 없음'}</p>
+                        ${entry.images && entry.images.length > 0 ? `
+                            <div class="diary-detail-images">
+                                <div class="diary-images-grid">
+                                    ${entry.images.map(imageUrl => {
+                                        const normalizedUrl = normalizeImageUrl(imageUrl);
+                                        return `
+                                            <div class="diary-image-item">
+                                                <img src="${normalizedUrl}" alt="일기 이미지" onclick="window.open('${normalizedUrl}', '_blank')">
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        <div class="diary-actions">
+                            <button class="btn-edit" onclick="event.stopPropagation(); editDiary('${entry.id}')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                <span>수정</span>
+                            </button>
+                            <button class="btn-delete" onclick="event.stopPropagation(); deleteDiary('${entry.id}')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                <span>삭제</span>
+                            </button>
+                        </div>
                     </div>
                 ` : ''}
             </div>
@@ -285,6 +340,47 @@ function closeDiaryModal() {
         document.body.style.overflow = '';
         selectedDate = null;
         expandedDiaryId = null;
+    }
+}
+
+function editDiary(diaryId) {
+    window.location.href = `/write?id=${diaryId}`;
+}
+
+async function deleteDiary(diaryId) {
+    if (!confirm('이 일기를 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/diaries/${diaryId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                await loadDiaries();
+                
+                if (selectedDate) {
+                    const entries = getEntriesForDate(selectedDate);
+                    if (entries.length === 0) {
+                        closeDiaryModal();
+                    } else {
+                        expandedDiaryId = null;
+                        showDiaryModal(selectedDate, entries);
+                    }
+                }
+            } else {
+                alert('일기 삭제에 실패했습니다: ' + (data.message || '알 수 없는 오류'));
+            }
+        } else {
+            alert('일기 삭제에 실패했습니다.');
+        }
+    } catch (error) {
+        console.error('Error deleting diary:', error);
+        alert('일기 삭제 중 오류가 발생했습니다.');
     }
 }
 
