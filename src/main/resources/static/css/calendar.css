@@ -65,10 +65,24 @@
 
 .stat-icon {
     margin: 0 auto 0.5rem;
-    width: 28px;
-    height: 28px;
-    color: #4b5563;
-    font-size: 28px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+@media (min-width: 640px) {
+    .stat-icon {
+        width: 64px;
+        height: 64px;
+    }
 }
 
 .stat-label {
@@ -188,16 +202,46 @@
     background: linear-gradient(to bottom right, white, rgba(254, 243, 199, 0.3));
 }
 
+.calendar-day.has-emotion.happy {
+    background: linear-gradient(to bottom right, white, rgba(254, 249, 195, 0.7));
+}
+
+.calendar-day.has-emotion.anxiety {
+    background: linear-gradient(to bottom right, white, rgba(243, 232, 255, 0.7));
+}
+
+.calendar-day.has-emotion.embarrassed {
+    background: linear-gradient(to bottom right, white, rgba(220, 252, 231, 0.7));
+}
+
+.calendar-day.has-emotion.sad {
+    background: linear-gradient(to bottom right, white, rgba(219, 234, 254, 0.7));
+}
+
+.calendar-day.has-emotion.angry {
+    background: linear-gradient(to bottom right, white, rgba(254, 226, 226, 0.7));
+}
+
+.calendar-day.has-emotion.hurt {
+    background: linear-gradient(to bottom right, white, rgba(209, 213, 219, 0.7));
+}
+
 .calendar-day-number {
     font-size: 0.75rem;
     color: #374151;
-    margin-bottom: 0.125rem;
+    margin-bottom: 0;
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    font-weight: 500;
 }
 
 @media (min-width: 640px) {
     .calendar-day-number {
         font-size: 1rem;
-        margin-bottom: 0.25rem;
+        margin-bottom: 0;
     }
 }
 
@@ -206,33 +250,56 @@
 }
 
 .emotion-indicator {
-    width: 1.25rem;
-    height: 1.25rem;
+    position: absolute;
+    top: 60%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 9999px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    overflow: hidden;
+    z-index: 0;
+    background: transparent;
+}
+
+.emotion-indicator img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 @media (min-width: 640px) {
     .emotion-indicator {
-        width: 2rem;
-        height: 2rem;
-        font-size: 18px;
+        width: 3.5rem;
+        height: 3.5rem;
     }
 }
 
 .emotion-indicator.happy {
-    background: #facc15;
+    background: transparent;
 }
 
-.emotion-indicator.angry {
-    background: #f87171;
+.emotion-indicator.anxiety {
+    background: transparent;
+}
+
+.emotion-indicator.embarrassed {
+    background: transparent;
 }
 
 .emotion-indicator.sad {
-    background: #60a5fa;
+    background: transparent;
+}
+
+.emotion-indicator.angry {
+    background: transparent;
+}
+
+.emotion-indicator.hurt {
+    background: transparent;
 }
 
 .calendar-legend {
@@ -265,27 +332,44 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    overflow: hidden;
+}
+
+.legend-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 @media (min-width: 640px) {
     .legend-icon {
         width: 1.5rem;
         height: 1.5rem;
-        font-size: 14px;
     }
 }
 
 .legend-icon.happy {
-    background: #facc15;
+    background: #fef9c3;
 }
 
-.legend-icon.angry {
-    background: #f87171;
+.legend-icon.anxiety {
+    background: #f3e8ff;
+}
+
+.legend-icon.embarrassed {
+    background: #dcfce7;
 }
 
 .legend-icon.sad {
-    background: #60a5fa;
+    background: #dbeafe;
+}
+
+.legend-icon.angry {
+    background: #fee2e2;
+}
+
+.legend-icon.hurt {
+    background: #f3f4f6;
 }
 
 .legend-label {
@@ -482,7 +566,17 @@
 }
 
 .emotion-icon {
-    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+}
+
+.emotion-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 .diary-time {
@@ -590,24 +684,25 @@
 }
 
 .btn-edit {
-    background: linear-gradient(to right, #fbbf24, #fb923c);
-    color: white;
+    background: #fefaf3;
+    color: #1f2937;
 }
 
 .btn-edit:hover {
-    background: linear-gradient(to right, #f59e0b, #f97316);
+    background: #fef5e7;
+    color: #1f2937;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .btn-delete {
-    background: #fee2e2;
-    color: #dc2626;
+    background: #fefaf3;
+    color: #1f2937;
 }
 
 .btn-delete:hover {
-    background: #fecaca;
-    color: #b91c1c;
+    background: #fef5e7;
+    color: #1f2937;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }

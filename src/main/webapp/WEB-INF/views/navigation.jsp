@@ -7,6 +7,7 @@
         if (uri.contains("/main")) currentPage = "main";
         else if (uri.contains("/write")) currentPage = "write";
         else if (uri.contains("/calendar")) currentPage = "calendar";
+        else if (uri.contains("/userinfo")) currentPage = "userinfo";
         else currentPage = "main";
     }
     String username = (String) session.getAttribute("username");
@@ -17,7 +18,7 @@
 <nav class="navbar">
     <div class="nav-container">
         <div class="nav-header">
-            <h1 class="nav-title">감정일기</h1>
+            <h1 class="nav-title">Emotion Diary</h1>
             
             <div class="nav-desktop">
                 <a href="${pageContext.request.contextPath}/main" 
@@ -51,6 +52,7 @@
             </div>
             
             <div class="nav-user">
+                <a href="${pageContext.request.contextPath}/userinfo" class="user-info-link">
                 <div class="user-info">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -58,6 +60,7 @@
                     </svg>
                     <span><%= username != null ? username : "사용자" %></span>
                 </div>
+                </a>
                 <button class="btn-logout" onclick="logout()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -112,6 +115,7 @@
             </a>
 
             <div class="nav-user-mobile">
+                <a href="${pageContext.request.contextPath}/userinfo" class="user-info-link">
                 <div class="user-info">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -119,6 +123,7 @@
                     </svg>
                     <span><%= username != null ? username : "사용자" %></span>
                 </div>
+                </a>
                 <button class="btn-logout" onclick="logout()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>

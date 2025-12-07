@@ -85,6 +85,7 @@ let selectedImages = [];
 let existingImages = []; // 수정 모드에서 기존 이미지
 let isEditMode = false; // 수정 모드 여부
 let currentDiaryId = null; // 현재 수정 중인 일기 ID
+let emotionAnalyzed = false; // 감정 분석 완료 여부
 
 // 이미지 URL 정규화 함수
 function normalizeImageUrl(imageUrl) {
@@ -146,7 +147,11 @@ async function loadDiaryForEdit(diaryId) {
                 const dateInput = document.getElementById('diaryDate');
                 
                 if (titleInput) titleInput.value = diary.title || '';
-                if (contentInput) contentInput.value = diary.content || '';
+                if (contentInput) {
+                    contentInput.value = diary.content || '';
+                    // 원본 내용 저장 (내용 변경 감지용)
+                    originalContent = diary.content || '';
+                }
                 if (dateInput && diary.date) {
                     // 날짜 형식 변환 (YYYY-MM-DD)
                     const date = new Date(diary.date);
@@ -173,13 +178,17 @@ async function loadDiaryForEdit(diaryId) {
                         resultEmotion.textContent = emotionLabels[diary.emotion] || diary.emotion;
                         resultDiv.style.display = 'block';
                         resultDiv.dataset.emotion = diary.emotion;
+                        // 기존 클래스 제거 후 새로운 감정 클래스 추가
+                        resultDiv.className = 'emotion-result ' + diary.emotion;
+                        // 수정 모드에서 기존 감정이 있으면 분석 완료 플래그 설정
+                        emotionAnalyzed = true;
                     }
                 }
             } else {
                 alert('일기를 불러올 수 없습니다.');
                 window.location.href = '/main';
             }
-        } else {
+    } else {
             alert('일기를 불러올 수 없습니다.');
             window.location.href = '/main';
         }
@@ -189,6 +198,17 @@ async function loadDiaryForEdit(diaryId) {
         window.location.href = '/main';
     }
 }
+
+// 내용 변경 시 감정 분석 상태 업데이트 (수정 모드에서 감정 분석 다시 가능하도록)
+let originalContent = '';
+document.getElementById('content').addEventListener('input', function() {
+    const currentContent = this.value.trim();
+    // 내용이 변경되었으면 감정 분석 상태를 업데이트 (수정 모드에서 감정 분석 다시 가능하도록)
+    if (isEditMode && originalContent !== currentContent && currentContent.length > 0) {
+        // 내용이 변경되었으므로 감정 분석을 다시 할 수 있도록 플래그는 유지
+        // (수정 모드에서는 기존 감정이 있어도 내용 변경 시 새로운 감정으로 업데이트 가능)
+    }
+});
 
 // 이미지 업로드 버튼 클릭
 document.getElementById('imageUploadBtn').addEventListener('click', function() {
@@ -288,7 +308,7 @@ function updateImagePreview() {
     });
 }
 
-document.getElementById('analyzeBtn').addEventListener('click', function() {
+document.getElementById('analyzeBtn').addEventListener('click', async function() {
     const content = document.getElementById('content').value.trim();
     
     if (!content) {
@@ -296,13 +316,39 @@ document.getElementById('analyzeBtn').addEventListener('click', function() {
         return;
     }
     
-    const emotion = analyzeEmotion(content);
-    const resultDiv = document.getElementById('emotionResult');
-    const resultEmotion = document.getElementById('resultEmotion');
-    
-    resultEmotion.textContent = emotionLabels[emotion];
-    resultDiv.style.display = 'block';
-    resultDiv.dataset.emotion = emotion;
+    try {
+        // 서버 API 호출하여 감정 분석 수행
+        const response = await fetch('/api/analyze-emotion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: content }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.emotion) {
+            const emotion = data.emotion;
+            const resultDiv = document.getElementById('emotionResult');
+            const resultEmotion = document.getElementById('resultEmotion');
+            
+            resultEmotion.textContent = emotionLabels[emotion] || emotion;
+            resultDiv.style.display = 'block';
+            resultDiv.dataset.emotion = emotion;
+            // 기존 클래스 제거 후 새로운 감정 클래스 추가
+            resultDiv.className = 'emotion-result ' + emotion;
+            
+            // 감정 분석 완료 플래그 설정
+            emotionAnalyzed = true;
+        } else {
+            alert('감정 분석에 실패했습니다: ' + (data.message || '알 수 없는 오류'));
+        }
+    } catch (error) {
+        console.error('Error analyzing emotion:', error);
+        alert('감정 분석 중 오류가 발생했습니다.');
+    }
 });
 
 document.getElementById('diaryForm').addEventListener('submit', async function(e) {
@@ -317,7 +363,44 @@ document.getElementById('diaryForm').addEventListener('submit', async function(e
     }
     
     const resultDiv = document.getElementById('emotionResult');
-    const emotion = resultDiv.dataset.emotion || analyzeEmotion(content);
+    let emotion = resultDiv.dataset.emotion;
+    
+    // 감정 분석이 완료되지 않았으면 자동으로 감정 분석 수행 (서버 API 호출)
+    if (!emotion || !emotionAnalyzed) {
+        try {
+            const analyzeResponse = await fetch('/api/analyze-emotion', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: content }),
+                credentials: 'include'
+            });
+            
+            const analyzeData = await analyzeResponse.json();
+            
+            if (analyzeData.success && analyzeData.emotion) {
+                emotion = analyzeData.emotion;
+                const resultEmotion = document.getElementById('resultEmotion');
+                
+                if (resultDiv && resultEmotion) {
+                    resultEmotion.textContent = emotionLabels[emotion] || emotion;
+                    resultDiv.style.display = 'block';
+                    resultDiv.dataset.emotion = emotion;
+                    // 기존 클래스 제거 후 새로운 감정 클래스 추가
+                    resultDiv.className = 'emotion-result ' + emotion;
+                }
+                emotionAnalyzed = true;
+            } else {
+                alert('감정 분석에 실패했습니다: ' + (analyzeData.message || '알 수 없는 오류'));
+                return;
+            }
+        } catch (error) {
+            console.error('Error analyzing emotion:', error);
+            alert('감정 분석 중 오류가 발생했습니다.');
+            return;
+        }
+    }
     const dateInput = document.getElementById('diaryDate');
     const selectedDate = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
 
@@ -357,10 +440,10 @@ document.getElementById('diaryForm').addEventListener('submit', async function(e
         ];
         
         // 3. 일기 데이터 구성
-        const diary = {
-            title,
-            content,
-            emotion,
+    const diary = {
+        title,
+        content,
+        emotion,
             date: selectedDate,
             imageUrls: allImageUrls
         };

@@ -6,6 +6,7 @@ import com.example.emotiondiary.entity.SentimentAnalysis;
 import com.example.emotiondiary.entity.User;
 import com.example.emotiondiary.service.DiaryImageService;
 import com.example.emotiondiary.service.DiaryService;
+import com.example.emotiondiary.service.EmotionAnalysisService;
 import com.example.emotiondiary.service.SentimentAnalysisService;
 import com.example.emotiondiary.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,7 @@ public class ApiController {
     private final DiaryService diaryService;
     private final DiaryImageService diaryImageService;
     private final SentimentAnalysisService sentimentAnalysisService;
+    private final EmotionAnalysisService emotionAnalysisService;
     
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -503,7 +505,7 @@ public class ApiController {
             String projectRoot = System.getProperty("user.dir");
             String uploadDir = projectRoot + File.separator + "src" + File.separator + "main" + 
                              File.separator + "resources" + File.separator + "static" + 
-                             File.separator + "images";
+                             File.separator + "images" + File.separator + "data";
             File directory = new File(uploadDir);
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
@@ -536,7 +538,7 @@ public class ApiController {
                 
                 // 이미지 URL 생성 (프론트엔드에서 접근 가능한 경로)
                 // Spring Boot 기본 static resource 경로 사용
-                String imageUrl = "/images/" + uniqueFileName;
+                String imageUrl = "/images/data/" + uniqueFileName;
                 imageUrls.add(imageUrl);
             }
             
@@ -556,6 +558,245 @@ public class ApiController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "이미지 업로드 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @GetMapping(value = "/user/info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> getUserInfo(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Map<String, Object> response = new HashMap<>();
+        
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            User user = userService.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // 사용자 정보
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("userId", user.getUserId());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("nickname", user.getNickname());
+            userInfo.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
+            
+            // 일기 통계
+            List<Diary> diaries = diaryService.findByUserId(userId);
+            userInfo.put("totalDiaries", diaries.size());
+            
+            response.put("success", true);
+            response.put("user", userInfo);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "사용자 정보 조회에 실패했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @PutMapping(value = "/user/info", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> updateUserInfo(@RequestBody Map<String, String> userData,
+                                               HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Map<String, Object> response = new HashMap<>();
+        
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            User user = userService.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // 이메일 변경
+            String email = userData.get("email");
+            if (email != null && !email.trim().isEmpty()) {
+                String emailTrimmed = email.trim();
+                // 현재 이메일과 다를 때만 중복 확인
+                if (!emailTrimmed.equals(user.getEmail())) {
+                    if (userService.existsByEmail(emailTrimmed)) {
+                        response.put("success", false);
+                        response.put("message", "이미 사용 중인 이메일입니다.");
+                        return response;
+                    }
+                    user.setEmail(emailTrimmed);
+                }
+            }
+            
+            // 닉네임 변경
+            String nickname = userData.get("nickname");
+            if (nickname != null && !nickname.trim().isEmpty()) {
+                String nicknameTrimmed = nickname.trim();
+                // 현재 닉네임과 다를 때만 중복 확인
+                if (!nicknameTrimmed.equals(user.getNickname())) {
+                    Optional<User> existingUser = userService.findByNickname(nicknameTrimmed);
+                    if (existingUser.isPresent() && !existingUser.get().getUserId().equals(userId)) {
+                        response.put("success", false);
+                        response.put("message", "이미 사용 중인 닉네임입니다.");
+                        return response;
+                    }
+                    user.setNickname(nicknameTrimmed);
+                    // 세션의 username도 업데이트
+                    session.setAttribute("username", nicknameTrimmed);
+                }
+            }
+            
+            // 비밀번호 변경
+            String password = userData.get("password");
+            String newPassword = userData.get("newPassword");
+            if (password != null && newPassword != null && !newPassword.trim().isEmpty()) {
+                // 현재 비밀번호 확인
+                if (!password.equals(user.getPassword())) {
+                    response.put("success", false);
+                    response.put("message", "현재 비밀번호가 올바르지 않습니다.");
+                    return response;
+                }
+                user.setPassword(newPassword.trim());
+            }
+            
+            userService.save(user);
+            
+            response.put("success", true);
+            response.put("message", "사용자 정보가 수정되었습니다.");
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "사용자 정보 수정에 실패했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @PostMapping(value = "/user/verify-password", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> verifyPassword(@RequestBody Map<String, String> passwordData,
+                                               HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Map<String, Object> response = new HashMap<>();
+        
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            User user = userService.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            String password = passwordData.get("password");
+            if (password == null || password.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "비밀번호를 입력해주세요.");
+                return response;
+            }
+            
+            if (password.equals(user.getPassword())) {
+                response.put("success", true);
+                response.put("message", "비밀번호가 확인되었습니다.");
+            } else {
+                response.put("success", false);
+                response.put("message", "비밀번호가 일치하지 않습니다.");
+            }
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "비밀번호 확인 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @PostMapping(value = "/analyze-emotion", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> analyzeEmotion(@RequestBody Map<String, String> request,
+                                               HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // 로그인 확인
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            String text = request.get("text");
+            if (text == null || text.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "분석할 텍스트를 입력해주세요.");
+                return response;
+            }
+            
+            // 감정 분석 수행
+            SentimentAnalysis.Emotion emotion = emotionAnalysisService.analyzeEmotion(text);
+            
+            response.put("success", true);
+            response.put("emotion", emotion.name().toLowerCase());
+            response.put("message", "감정 분석이 완료되었습니다.");
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "감정 분석 중 오류가 발생했습니다: " + e.getMessage());
+        }
+        
+        return response;
+    }
+    
+    @DeleteMapping(value = "/user/delete", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public Map<String, Object> deleteUser(@RequestBody Map<String, String> deleteData,
+                                           HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        Map<String, Object> response = new HashMap<>();
+        
+        if (userId == null) {
+            response.put("success", false);
+            response.put("message", "로그인이 필요합니다.");
+            return response;
+        }
+        
+        try {
+            User user = userService.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // 비밀번호 확인
+            String password = deleteData.get("password");
+            if (password == null || !password.equals(user.getPassword())) {
+                response.put("success", false);
+                response.put("message", "비밀번호가 올바르지 않습니다.");
+                return response;
+            }
+            
+            // 사용자의 모든 일기 삭제 (cascade로 자동 삭제되지만 명시적으로 처리)
+            List<Diary> diaries = diaryService.findByUserId(userId);
+            for (Diary diary : diaries) {
+                diaryService.delete(diary.getDiaryId());
+            }
+            
+            // 사용자 삭제
+            userService.delete(userId);
+            
+            // 세션 무효화
+            session.invalidate();
+            
+            response.put("success", true);
+            response.put("message", "탈퇴가 완료되었습니다.");
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "탈퇴 중 오류가 발생했습니다: " + e.getMessage());
         }
         
         return response;

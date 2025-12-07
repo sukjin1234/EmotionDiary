@@ -51,5 +51,13 @@ public class DiaryController {
         }
         return "calendar";
     }
+    
+    @GetMapping("/userinfo")
+    public String userinfo(HttpSession session) {
+        if (session.getAttribute("username") == null) {
+            return "redirect:/login";
+        }
+        return "userinfo";
+    }
 }
 

@@ -1,19 +1,48 @@
-const emotionIcons = {
-    happy: '😊',
-    angry: '😠',
-    sad: '😢'
-};
+const CONTEXT_PATH = typeof CONTEXT_PATH_JSP !== 'undefined' ? CONTEXT_PATH_JSP : '';
 
-const emotionLabels = {
-    happy: '행복',
-    angry: '분노',
-    sad: '슬픔'
-};
-
-const emotionColors = {
-    happy: '#facc15',
-    angry: '#f87171',
-    sad: '#60a5fa'
+const emotionConfig = {
+    happy: {
+        icon: `${CONTEXT_PATH}/images/icon/happy.png`,
+        label: '기쁨',
+        color: '#facc15',
+        bgColor: '#fef9c3',
+        borderColor: '#fde047'
+    },
+    anxiety: {
+        icon: `${CONTEXT_PATH}/images/icon/anxiety.png`,
+        label: '불안',
+        color: '#a855f7',
+        bgColor: '#f3e8ff',
+        borderColor: '#c4b5fd'
+    },
+    embarrassed: {
+        icon: `${CONTEXT_PATH}/images/icon/embarrassed.png`,
+        label: '당황',
+        color: '#16a34a',
+        bgColor: '#dcfce7',
+        borderColor: '#86efac'
+    },
+    sad: {
+        icon: `${CONTEXT_PATH}/images/icon/sad.png`,
+        label: '슬픔',
+        color: '#60a5fa',
+        bgColor: '#dbeafe',
+        borderColor: '#93c5fd'
+    },
+    angry: {
+        icon: `${CONTEXT_PATH}/images/icon/angry.png`,
+        label: '분노',
+        color: '#f87171',
+        bgColor: '#fee2e2',
+        borderColor: '#fca5a5'
+    },
+    hurt: {
+        icon: `${CONTEXT_PATH}/images/icon/hurt.png`,
+        label: '상처',
+        color: '#6b7280',
+        bgColor: '#f3f4f6',
+        borderColor: '#9ca3af'
+    }
 };
 
 let currentDate = new Date();
@@ -41,7 +70,7 @@ function normalizeImageUrl(imageUrl) {
 
 async function loadDiaries() {
     try {
-        const response = await fetch('/api/diaries', {
+        const response = await fetch(`${CONTEXT_PATH}/api/diaries`, {
             credentials: 'include'
         });
         
@@ -75,13 +104,15 @@ function renderMonthlyStats() {
     statsContainer.innerHTML = `
         <h2>이번 달 감정 분포</h2>
         <div class="stats-grid">
-            ${Object.entries(emotionLabels).map(([emotion, label]) => {
+            ${Object.entries(emotionConfig).map(([emotion, config]) => {
                 const count = stats[emotion] || 0;
                 const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
                 return `
                     <div class="stat-item">
-                        <div class="stat-icon">${emotionIcons[emotion]}</div>
-                        <p class="stat-label">${label}</p>
+                        <div class="stat-icon">
+                            <img src="${config.icon}" alt="${config.label}" />
+                        </div>
+                        <p class="stat-label">${config.label}</p>
                         <p class="stat-count">${count}개</p>
                         <p class="stat-percentage">(${percentage}%)</p>
                     </div>
@@ -124,12 +155,12 @@ function renderCalendar() {
         const clickableClass = hasEntries ? 'clickable' : '';
         
         calendarHTML += `
-            <div class="calendar-day ${isToday ? 'today' : ''} ${emotion ? 'has-emotion' : ''} ${clickableClass}" 
+            <div class="calendar-day ${isToday ? 'today' : ''} ${emotion ? 'has-emotion ' + emotion : ''} ${clickableClass}" 
                  data-date="${dateStr}" data-day="${day}">
                 <span class="calendar-day-number ${isToday ? 'today' : ''}">${day}</span>
                 ${emotion ? `
                     <div class="emotion-indicator ${emotion}">
-                        ${emotionIcons[emotion]}
+                        <img src="${emotionConfig[emotion]?.icon || emotionConfig.happy.icon}" alt="${emotionConfig[emotion]?.label || '감정'}" />
                     </div>
                 ` : ''}
                 ${hasEntries && entries.length > 1 ? `
@@ -141,12 +172,12 @@ function renderCalendar() {
     
     document.getElementById('calendarGrid').innerHTML = calendarHTML;
     
-    const legendHTML = Object.entries(emotionLabels).map(([emotion, label]) => `
+    const legendHTML = Object.entries(emotionConfig).map(([emotion, config]) => `
         <div class="legend-item">
             <div class="legend-icon ${emotion}">
-                ${emotionIcons[emotion]}
+                <img src="${config.icon}" alt="${config.label}" />
             </div>
-            <span class="legend-label">${label}</span>
+            <span class="legend-label">${config.label}</span>
         </div>
     `).join('');
     
@@ -247,19 +278,15 @@ function showDiaryModal(dateStr, entries) {
         }
         
         const isExpanded = expandedDiaryId === entry.id;
-        const config = {
-            happy: { bgColor: 'rgba(250, 204, 21, 0.2)', color: '#92400e', borderColor: '#facc15' },
-            angry: { bgColor: 'rgba(248, 113, 113, 0.2)', color: '#991b1b', borderColor: '#f87171' },
-            sad: { bgColor: 'rgba(96, 165, 250, 0.2)', color: '#1e40af', borderColor: '#60a5fa' }
-        }[entry.emotion] || { bgColor: 'rgba(250, 204, 21, 0.2)', color: '#92400e', borderColor: '#facc15' };
+        const config = emotionConfig[entry.emotion] || emotionConfig.happy;
         
         return `
             <div class="diary-item" data-diary-id="${entry.id}" style="border-left: 4px solid ${config.borderColor}; background: ${config.bgColor};">
                 <button class="diary-item-btn" data-diary-id="${entry.id}">
                     <div class="diary-item-header">
                         <div class="diary-emotion" style="background: ${config.bgColor}; color: ${config.color}; border: 1px solid ${config.borderColor};">
-                            <span class="emotion-icon">${emotionIcons[entry.emotion] || emotionIcons.happy}</span>
-                            <span class="emotion-label">${emotionLabels[entry.emotion] || '감정 없음'}</span>
+                            <span class="emotion-icon"><img src="${config.icon}" alt="${config.label}" /></span>
+                            <span class="emotion-label">${config.label}</span>
                         </div>
                         <div class="diary-header-right">
                             ${timeStr ? `<span class="diary-time">${timeStr}</span>` : ''}

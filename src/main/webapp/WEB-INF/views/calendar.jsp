@@ -70,6 +70,9 @@
         </div>
     </div>
     
+    <script>
+        const CONTEXT_PATH_JSP = "${pageContext.request.contextPath}";
+    </script>
     <script src="${pageContext.request.contextPath}/resources/js/calendar.js"></script>
 </body>
 </html>

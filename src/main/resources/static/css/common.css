@@ -6,7 +6,7 @@
 
 body {
     font-family: ui-sans-serif, system-ui, sans-serif;
-    background: linear-gradient(to bottom right, #fef3c7, #fed7aa, #fce7f3);
+    background: linear-gradient(to bottom right, #fefaf3, #fef5e7, #fdf2f8);
     min-height: 100vh;
     color: #1f2937;
 }
@@ -98,11 +98,23 @@ body {
     }
 }
 
+.user-info-link {
+    text-decoration: none;
+    color: inherit;
+}
+
 .user-info {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: #92400e;
+    transition: background-color 0.15s;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.user-info-link:hover .user-info {
+    background: #fef3c7;
 }
 
 .btn-logout {
@@ -163,6 +175,11 @@ body {
 .nav-user-mobile .user-info {
     padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
+    transition: background-color 0.15s;
+}
+
+.nav-user-mobile .user-info-link:hover .user-info {
+    background: #fef3c7;
 }
 
 .nav-user-mobile .btn-logout {

@@ -18,9 +18,9 @@ const emotionConfig = {
     embarrassed: {
         icon: `${CONTEXT_PATH}/images/icon/embarrassed.png`,
         label: '당황',
-        color: '#f472b6',
-        bgColor: '#fce7f3',
-        borderColor: '#f472b6'
+        color: '#16a34a',
+        bgColor: '#dcfce7',
+        borderColor: '#86efac'
     },
     sad: {
         icon: `${CONTEXT_PATH}/images/icon/sad.png`,
@@ -72,18 +72,24 @@ function displayEmotionStats(diaries) {
     const statsContainer = document.getElementById('emotionStats');
     statsContainer.innerHTML = '';
     
-    Object.entries(emotionConfig).forEach(([emotion, config]) => {
+    // 감정 순서: 기쁨, 불안, 당황, 슬픔, 분노, 상처
+    const emotionOrder = ['happy', 'anxiety', 'embarrassed', 'sad', 'angry', 'hurt'];
+    
+    emotionOrder.forEach(emotion => {
+        const config = emotionConfig[emotion];
+        if (config) {
         const count = stats[emotion] || 0;
         const card = document.createElement('div');
         card.className = `emotion-stat-card ${emotion}`;
         card.innerHTML = `
-            <div class="emotion-stat-icon">
-                <img src="${config.icon}" alt="${config.label}" />
-            </div>
+                <div class="emotion-stat-icon">
+                    <img src="${config.icon}" alt="${config.label}" />
+                </div>
             <p class="emotion-stat-label">${config.label}</p>
             <p class="emotion-stat-count">${count}개</p>
         `;
         statsContainer.appendChild(card);
+        }
     });
 }
 
@@ -104,11 +110,34 @@ function displayDiaries(diaries) {
         return;
     }
     
-    const sortedDiaries = [...diaries].sort((a, b) => 
+    // 최근 일주일간의 일기만 필터링 (오늘 기준 7일 전부터 오늘까지)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // 시간을 00:00:00으로 설정
+    const oneWeekAgo = new Date(today);
+    oneWeekAgo.setDate(today.getDate() - 7); // 7일 전
+    
+    const filteredDiaries = diaries.filter(diary => {
+        const diaryDate = new Date(diary.date);
+        diaryDate.setHours(0, 0, 0, 0);
+        return diaryDate >= oneWeekAgo && diaryDate <= today;
+    });
+    
+    if (filteredDiaries.length === 0) {
+        listContainer.innerHTML = `
+            <div class="empty-state">
+                <p>최근 일주일간 작성된 일기가 없습니다.</p>
+                <p>새 일기를 작성해보세요!</p>
+            </div>
+        `;
+        allDiaries = [];
+        return;
+    }
+    
+    const sortedDiaries = [...filteredDiaries].sort((a, b) => 
         new Date(b.date) - new Date(a.date)
     );
     
-    // 전역 변수에 저장
+    // 전역 변수에 저장 (필터링된 일기)
     allDiaries = sortedDiaries;
     
     listContainer.innerHTML = sortedDiaries.map(diary => {
@@ -120,7 +149,7 @@ function displayDiaries(diaries) {
             <div class="diary-item ${diary.emotion}" onclick="openDiaryModal('${diary.id}')" style="cursor: pointer;">
                 <div class="diary-header">
                     <div class="diary-header-left">
-                        <div class="diary-emotion-icon">
+                        <div class="diary-emotion-icon ${diary.emotion}">
                             <img src="${config.icon}" alt="${config.label}" />
                         </div>
                         <div class="diary-title-date">
@@ -138,7 +167,6 @@ function displayDiaries(diaries) {
                         </button>
                     </div>
                 </div>
-                <p class="diary-content">${escapeHtml(diary.content)}</p>
             </div>
         `;
     }).join('');
@@ -233,7 +261,7 @@ function openDiaryModal(diaryId) {
         const emotionBgColor = {
             happy: 'rgba(250, 204, 21, 0.2)',
             anxiety: 'rgba(168, 85, 247, 0.2)',
-            embarrassed: 'rgba(244, 114, 182, 0.2)',
+            embarrassed: 'rgba(134, 239, 172, 0.2)',
             sad: 'rgba(96, 165, 250, 0.2)',
             angry: 'rgba(248, 113, 113, 0.2)',
             hurt: 'rgba(107, 114, 128, 0.2)'
@@ -242,7 +270,7 @@ function openDiaryModal(diaryId) {
         const emotionBorderColor = {
             happy: '#facc15',
             anxiety: '#a855f7',
-            embarrassed: '#f472b6',
+            embarrassed: '#86efac',
             sad: '#60a5fa',
             angry: '#f87171',
             hurt: '#6b7280'
@@ -257,12 +285,9 @@ function openDiaryModal(diaryId) {
     }
     
     // 내용 설정
-    const contentHtml = `
-        <div class="diary-detail-content">
-            ${diary.content 
-                ? diary.content.split('\n').map(line => `<p>${escapeHtml(line)}</p>`).join('')
-                : '<p>내용이 없습니다.</p>'}
-        </div>
+    const contentHtml = `<div class="diary-detail-content">${diary.content 
+        ? diary.content.split('\n').map(line => `<p>${escapeHtml(line)}</p>`).join('')
+        : '<p>내용이 없습니다.</p>'}</div>
         ${diary.images && diary.images.length > 0 ? `
             <div class="diary-detail-images">
                 <div class="diary-images-grid">
