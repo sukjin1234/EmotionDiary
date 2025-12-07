@@ -84,6 +84,8 @@ async function loadDiaries() {
     }
 }
 
+let pieChart = null;
+
 function renderMonthlyStats() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -101,25 +103,200 @@ function renderMonthlyStats() {
     const total = Object.values(stats).reduce((sum, count) => sum + count, 0);
     
     const statsContainer = document.getElementById('monthlyStats');
+    
+    // 파이 차트 데이터 준비
+    const chartData = [];
+    const chartLabels = [];
+    const chartColors = [];
+    const chartEmotions = [];
+    
+    Object.entries(emotionConfig).forEach(([emotion, config]) => {
+        const count = stats[emotion] || 0;
+        if (count > 0) {
+            chartData.push(count);
+            chartLabels.push(config.label);
+            chartColors.push(config.bgColor);
+            chartEmotions.push(emotion);
+        }
+    });
+    
+    // HTML 생성 (항상 새로 생성)
     statsContainer.innerHTML = `
         <h2>이번 달 감정 분포</h2>
-        <div class="stats-grid">
-            ${Object.entries(emotionConfig).map(([emotion, config]) => {
-                const count = stats[emotion] || 0;
-                const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-                return `
-                    <div class="stat-item">
-                        <div class="stat-icon">
-                            <img src="${config.icon}" alt="${config.label}" />
-                        </div>
-                        <p class="stat-label">${config.label}</p>
-                        <p class="stat-count">${count}개</p>
-                        <p class="stat-percentage">(${percentage}%)</p>
-                    </div>
-                `;
-            }).join('')}
+        <div class="pie-chart-wrapper">
+            <div class="pie-chart-container">
+                <canvas id="emotionPieChart"></canvas>
+                <div id="pieChartEmojis" class="pie-chart-emojis"></div>
+            </div>
         </div>
     `;
+    
+    // 기존 차트가 있으면 제거
+    if (pieChart) {
+        pieChart.destroy();
+        pieChart = null;
+    }
+    
+    // 파이 차트 렌더링
+    const ctx = document.getElementById('emotionPieChart');
+    const emojisContainer = document.getElementById('pieChartEmojis');
+    
+    if (ctx && total > 0) {
+        pieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartData,
+                    backgroundColor: chartColors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 0 // 애니메이션 비활성화로 즉시 렌더링
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value}개 (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'emotionEmojis',
+                afterDraw: (chart) => {
+                    placeEmojisOnChart(chart, chartData, chartEmotions, total, emojisContainer, stats);
+                },
+                afterUpdate: (chart) => {
+                    placeEmojisOnChart(chart, chartData, chartEmotions, total, emojisContainer, stats);
+                }
+            }]
+        });
+        
+        // 차트가 리사이즈될 때도 이모지 위치 업데이트
+        if (window.ResizeObserver) {
+            const resizeObserver = new ResizeObserver(() => {
+                if (pieChart) {
+                    setTimeout(() => {
+                        placeEmojisOnChart(pieChart, chartData, chartEmotions, total, emojisContainer, stats);
+                    }, 50);
+                }
+            });
+            resizeObserver.observe(ctx.parentElement);
+        }
+    } else if (ctx) {
+        // 데이터가 없을 때
+        const ctx2d = ctx.getContext('2d');
+        ctx2d.clearRect(0, 0, ctx.width, ctx.height);
+        ctx2d.font = '16px Arial';
+        ctx2d.fillStyle = '#6b7280';
+        ctx2d.textAlign = 'center';
+        ctx2d.textBaseline = 'middle';
+        ctx2d.fillText('이번 달 일기가 없습니다', ctx.width / 2, ctx.height / 2);
+    }
+}
+
+function placeEmojisOnChart(chart, chartData, chartEmotions, total, container, stats) {
+    if (!container || !chart) return;
+    
+    const chartArea = chart.chartArea;
+    const centerX = (chartArea.left + chartArea.right) / 2;
+    const centerY = (chartArea.top + chartArea.bottom) / 2;
+    const radius = Math.min(chartArea.right - chartArea.left, chartArea.bottom - chartArea.top) / 2;
+    const emojiRadius = radius * 0.65;
+    
+    container.innerHTML = '';
+    container.style.width = chartArea.right - chartArea.left + 'px';
+    container.style.height = chartArea.bottom - chartArea.top + 'px';
+    container.style.left = chartArea.left + 'px';
+    container.style.top = chartArea.top + 'px';
+    
+    let currentAngle = -Math.PI / 2; // 시작 각도 (12시 방향)
+    
+    chartData.forEach((value, index) => {
+        const percentage = value / total;
+        const angle = percentage * 2 * Math.PI;
+        const midAngle = currentAngle + angle / 2;
+        
+        const emojiX = Math.cos(midAngle) * emojiRadius;
+        const emojiY = Math.sin(midAngle) * emojiRadius;
+        
+        const emotion = chartEmotions[index];
+        const config = emotionConfig[emotion];
+        const count = stats[emotion] || value;
+        const percent = ((count / total) * 100).toFixed(1);
+        
+        // 이모지와 텍스트를 담을 컨테이너
+        const emojiElement = document.createElement('div');
+        emojiElement.className = 'pie-chart-emoji';
+        emojiElement.style.position = 'absolute';
+        emojiElement.style.left = `calc(50% + ${emojiX}px)`;
+        emojiElement.style.top = `calc(50% + ${emojiY}px)`;
+        emojiElement.style.transform = 'translate(-50%, -50%)';
+        emojiElement.style.display = 'flex';
+        emojiElement.style.flexDirection = 'column';
+        emojiElement.style.alignItems = 'center';
+        emojiElement.style.justifyContent = 'center';
+        emojiElement.style.gap = '0.25rem';
+        
+        // 이모지 이미지
+        const imgWrapper = document.createElement('div');
+        imgWrapper.style.width = '48px';
+        imgWrapper.style.height = '48px';
+        imgWrapper.style.display = 'flex';
+        imgWrapper.style.alignItems = 'center';
+        imgWrapper.style.justifyContent = 'center';
+        
+        const img = document.createElement('img');
+        img.src = config.icon;
+        img.alt = config.label;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        
+        imgWrapper.appendChild(img);
+        
+        // 텍스트 정보
+        const textWrapper = document.createElement('div');
+        textWrapper.style.textAlign = 'center';
+        textWrapper.style.display = 'flex';
+        textWrapper.style.flexDirection = 'column';
+        textWrapper.style.alignItems = 'center';
+        textWrapper.style.gap = '0.125rem';
+        
+        const countText = document.createElement('span');
+        countText.textContent = `${count}개`;
+        countText.style.fontSize = '0.75rem';
+        countText.style.fontWeight = '600';
+        countText.style.color = '#374151';
+        
+        const percentText = document.createElement('span');
+        percentText.textContent = `(${percent}%)`;
+        percentText.style.fontSize = '0.625rem';
+        percentText.style.color = '#6b7280';
+        
+        textWrapper.appendChild(countText);
+        textWrapper.appendChild(percentText);
+        
+        emojiElement.appendChild(imgWrapper);
+        emojiElement.appendChild(textWrapper);
+        container.appendChild(emojiElement);
+        
+        currentAngle += angle;
+    });
 }
 
 function renderCalendar() {
