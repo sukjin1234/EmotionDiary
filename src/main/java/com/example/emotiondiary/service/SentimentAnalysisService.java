@@ -2,7 +2,6 @@ package com.example.emotiondiary.service;
 
 import com.example.emotiondiary.entity.Diary;
 import com.example.emotiondiary.entity.SentimentAnalysis;
-import com.example.emotiondiary.entity.SentimentAnalysis.Emotion;
 import com.example.emotiondiary.repository.DiaryRepository;
 import com.example.emotiondiary.repository.SentimentAnalysisRepository;
 import lombok.RequiredArgsConstructor;
