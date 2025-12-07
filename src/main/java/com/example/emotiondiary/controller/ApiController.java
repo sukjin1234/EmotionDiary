@@ -255,7 +255,6 @@ public class ApiController {
             response.put("success", false);
             response.put("message", e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace(); // 서버 로그에 출력
             response.put("success", false);
             response.put("message", "일기 조회에 실패했습니다: " + e.getMessage());
         }

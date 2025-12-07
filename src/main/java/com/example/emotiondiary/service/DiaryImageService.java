@@ -20,13 +20,6 @@ public class DiaryImageService {
     private final DiaryRepository diaryRepository;
     
     /**
-     * 이미지 ID로 조회
-     */
-    public Optional<DiaryImage> findById(Long imageId) {
-        return diaryImageRepository.findById(imageId);
-    }
-    
-    /**
      * 일기 ID로 이미지 목록 조회 (정렬 순서대로)
      */
     public List<DiaryImage> findByDiaryId(Long diaryId) {
@@ -61,35 +54,6 @@ public class DiaryImageService {
             }
         });
         return diaryImageRepository.saveAll(diaryImages);
-    }
-    
-    /**
-     * 이미지 정보 수정
-     */
-    @Transactional
-    public DiaryImage update(Long imageId, DiaryImage updatedImage) {
-        DiaryImage diaryImage = diaryImageRepository.findById(imageId)
-                .orElseThrow(() -> new IllegalArgumentException("이미지를 찾을 수 없습니다. ID: " + imageId));
-        
-        if (updatedImage.getImageUrl() != null) {
-            diaryImage.setImageUrl(updatedImage.getImageUrl());
-        }
-        if (updatedImage.getSortOrder() != null) {
-            diaryImage.setSortOrder(updatedImage.getSortOrder());
-        }
-        
-        return diaryImageRepository.save(diaryImage);
-    }
-    
-    /**
-     * 이미지 삭제
-     */
-    @Transactional
-    public void delete(Long imageId) {
-        if (!diaryImageRepository.existsById(imageId)) {
-            throw new IllegalArgumentException("이미지를 찾을 수 없습니다. ID: " + imageId);
-        }
-        diaryImageRepository.deleteById(imageId);
     }
     
     /**

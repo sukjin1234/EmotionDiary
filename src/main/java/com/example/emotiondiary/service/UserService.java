@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -44,40 +43,11 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
     
-    
-    /**
-     * 전체 사용자 목록 조회
-     */
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-    
     /**
      * 사용자 생성
      */
     @Transactional
     public User save(User user) {
-        return userRepository.save(user);
-    }
-    
-    /**
-     * 사용자 정보 수정
-     */
-    @Transactional
-    public User update(Long userId, User updatedUser) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
-        
-        if (updatedUser.getNickname() != null) {
-            user.setNickname(updatedUser.getNickname());
-        }
-        if (updatedUser.getPassword() != null) {
-            user.setPassword(updatedUser.getPassword());
-        }
-        if (updatedUser.getEmail() != null) {
-            user.setEmail(updatedUser.getEmail());
-        }
-        
         return userRepository.save(user);
     }
     

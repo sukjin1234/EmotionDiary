@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,44 +20,10 @@ public class SentimentAnalysisService {
     private final DiaryRepository diaryRepository;
     
     /**
-     * 분석 ID로 조회
-     */
-    public Optional<SentimentAnalysis> findById(Long analysisId) {
-        return sentimentAnalysisRepository.findById(analysisId);
-    }
-    
-    /**
      * 일기 ID로 감정 분석 결과 조회
      */
     public Optional<SentimentAnalysis> findByDiaryId(Long diaryId) {
         return sentimentAnalysisRepository.findByDiaryDiaryId(diaryId);
-    }
-    
-    /**
-     * 사용자 ID와 감정으로 감정 분석 결과 조회
-     */
-    public List<SentimentAnalysis> findByUserIdAndEmotion(Long userId, Emotion emotion) {
-        return sentimentAnalysisRepository.findByUserAndEmotion(userId, emotion);
-    }
-    
-    /**
-     * 사용자 ID와 년월로 감정 분석 결과 조회
-     */
-    public List<SentimentAnalysis> findByUserIdAndYearMonth(Long userId, int year, int month) {
-        return sentimentAnalysisRepository.findByUserAndYearMonth(userId, year, month);
-    }
-    
-    /**
-     * 감정별 통계 조회 (년월 기준)
-     */
-    public Map<Emotion, Long> getEmotionStatisticsByYearMonth(Long userId, int year, int month) {
-        List<Object[]> results = sentimentAnalysisRepository.countByEmotionAndUserAndYearMonth(userId, year, month);
-        
-        return results.stream()
-                .collect(Collectors.toMap(
-                    result -> (Emotion) result[0],
-                    result -> (Long) result[1]
-                ));
     }
     
     /**
@@ -74,24 +37,6 @@ public class SentimentAnalysisService {
                     .orElseThrow(() -> new IllegalArgumentException("일기를 찾을 수 없습니다. ID: " + sentimentAnalysis.getDiary().getDiaryId()));
             sentimentAnalysis.setDiary(diary);
         }
-        return sentimentAnalysisRepository.save(sentimentAnalysis);
-    }
-    
-    /**
-     * 감정 분석 결과 수정
-     */
-    @Transactional
-    public SentimentAnalysis update(Long analysisId, SentimentAnalysis updatedAnalysis) {
-        SentimentAnalysis sentimentAnalysis = sentimentAnalysisRepository.findById(analysisId)
-                .orElseThrow(() -> new IllegalArgumentException("감정 분석 결과를 찾을 수 없습니다. ID: " + analysisId));
-        
-        if (updatedAnalysis.getEmotion() != null) {
-            sentimentAnalysis.setEmotion(updatedAnalysis.getEmotion());
-        }
-        if (updatedAnalysis.getConfidence() != null) {
-            sentimentAnalysis.setConfidence(updatedAnalysis.getConfidence());
-        }
-        
         return sentimentAnalysisRepository.save(sentimentAnalysis);
     }
     
@@ -118,17 +63,6 @@ public class SentimentAnalysisService {
             updatedAnalysis.setDiary(diary);
             return sentimentAnalysisRepository.save(updatedAnalysis);
         }
-    }
-    
-    /**
-     * 감정 분석 결과 삭제
-     */
-    @Transactional
-    public void delete(Long analysisId) {
-        if (!sentimentAnalysisRepository.existsById(analysisId)) {
-            throw new IllegalArgumentException("감정 분석 결과를 찾을 수 없습니다. ID: " + analysisId);
-        }
-        sentimentAnalysisRepository.deleteById(analysisId);
     }
     
     /**
