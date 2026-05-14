@@ -42,3 +42,5 @@ out/
 images/
 
 models/
+
+ec2-test.pem
