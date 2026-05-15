@@ -39,7 +39,7 @@ out/
 ### Environment Variables ###
 .env
 
-images/
+data/
 
 models/
 
